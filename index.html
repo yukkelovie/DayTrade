@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>トレード実績</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Antique+Soft&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070c;--bg2:#0a0e1a;--bg3:#111825;
+  --gold:#e8b84b;--gold2:#f5d07a;
+  --jade:#2dcc8a;--dim:#3a4a6a;--text:#c8d4f0;--border:#1a2238;
+  --bronze:#cd7f32;--silver:#a8b8d0;--gld:#e8b84b;--plat:#70d0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:60px;}
+.header{background:linear-gradient(180deg,#0a0e1a,#05070c);border-bottom:1px solid var(--border);padding:16px 20px 12px;position:sticky;top:0;z-index:100;}
+.header-logo{font-family:'Zen Antique Soft',serif;font-size:20px;color:var(--gold);letter-spacing:.2em;}
+.header-sub{font-size:10px;color:var(--dim);letter-spacing:.1em;margin-top:2px;}
+.header-right{float:right;text-align:right;}
+.header-count{font-size:11px;color:var(--dim);margin-top:4px;}
+.header-count span{color:var(--gold);font-weight:700;}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;}
+.tab{flex:none;padding:10px 16px;font-size:10px;letter-spacing:.08em;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 16px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
+.stat-val{font-size:18px;font-weight:900;color:var(--gold);}
+.stat-label{font-size:8px;color:var(--dim);margin-top:2px;letter-spacing:.05em;}
+.input-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin:0 16px 8px;padding:14px 16px;}
+.input-panel-title{font-size:10px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px;}
+.input-section-label{font-size:9px;color:var(--gold);letter-spacing:.1em;margin:12px 0 6px;padding-top:10px;border-top:1px solid var(--border);}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.input-item label{display:block;font-size:9px;color:var(--dim);margin-bottom:3px;letter-spacing:.04em;}
+.input-item input{width:100%;background:#050810;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;padding:6px 8px;outline:none;transition:border .2s;}
+.input-item input:focus{border-color:var(--gold);}
+.input-apply{margin-top:10px;width:100%;background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold);border-radius:8px;color:var(--gold);font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;font-weight:700;padding:9px;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
+.input-apply:active{transform:scale(.98);}
+.sec-head{display:flex;align-items:center;gap:8px;padding:20px 16px 8px;font-size:10px;color:var(--dim);letter-spacing:.15em;}
+.sec-head::before,.sec-head::after{content:'';flex:1;height:1px;background:var(--border);}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;}
+.ach{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.ach::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,var(--ac,#e8b84b18) 0%,transparent 70%);opacity:0;transition:opacity .3s;}
+.ach:active{transform:scale(.97);}
+.ach.unlocked{border-color:var(--ac,var(--gold));}
+.ach.unlocked::before{opacity:1;}
+.ach-rank{display:inline-flex;align-items:center;border-radius:20px;padding:2px 7px;font-size:8px;font-weight:700;letter-spacing:.06em;border:1px solid;margin-bottom:6px;}
+.rank-bronze{color:var(--bronze);border-color:#cd7f3244;background:#120800;}
+.rank-silver{color:var(--silver);border-color:#a8b8d044;background:#0a0e1a;}
+.rank-gold{color:var(--gld);border-color:#e8b84b44;background:#120e00;}
+.rank-plat{color:var(--plat);border-color:#70d0ff44;background:#00101a;}
+.ach-icon{font-size:26px;margin-bottom:5px;display:block;filter:grayscale(1) opacity(.25);transition:filter .3s;}
+.ach.unlocked .ach-icon{filter:none;}
+.ach-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px;}
+.ach.unlocked .ach-name{color:var(--gold2);}
+.ach-desc{font-size:9px;color:var(--dim);line-height:1.5;}
+.ach-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:1px solid var(--dim);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .3s;}
+.ach.unlocked .ach-check{background:var(--ac,var(--gold));border-color:var(--ac,var(--gold));box-shadow:0 0 8px var(--ac,var(--gold));color:#000;}
+.ach-date{font-size:8px;color:var(--dim);margin-top:5px;}
+.ach.unlocked .ach-date{color:var(--jade);}
+@keyframes pop{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
+.ach.just-unlocked{animation:pop .4s ease;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0e1a;border:1px solid var(--gold);border-radius:20px;padding:8px 18px;font-size:11px;color:var(--gold);opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-right"><div class="header-count">解除 <span id="countUnlocked">0</span>/<span id="countTotal">0</span></div></div>
+  <div class="header-logo">🏆 トレード実績</div>
+  <div class="header-sub">TRADE ACHIEVEMENTS</div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('ach',this)">🏆 実績</div>
+  <div class="tab" onclick="switchTab('input',this)">📊 成績入力</div>
+</div>
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-val" id="st-unlocked">0</div><div class="stat-label">解除済み</div></div>
+  <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-label">総実績数</div></div>
+  <div class="stat-card"><div class="stat-val" id="st-gold">0</div><div class="stat-label">金トロフィー</div></div>
+  <div class="stat-card"><div class="stat-val" id="st-plat">0</div><div class="stat-label">白金トロフィー</div></div>
+</div>
+<div id="tab-ach"><div id="ach-container"></div></div>
+<div id="tab-input" class="hidden">
+  <div class="input-panel">
+    <div class="input-panel-title">📋 全トレード累計</div>
+    <div class="input-grid">
+      <div class="input-item"><label>純損益（円）</label><input type="number" id="in-pnl" placeholder="例: 45000"></div>
+      <div class="input-item"><label>純利益（円）</label><input type="number" id="in-profit" placeholder="例: 80000"></div>
+      <div class="input-item"><label>純損失（円）</label><input type="number" id="in-loss" placeholder="例: 35000"></div>
+      <div class="input-item"><label>総トレード数</label><input type="number" id="in-trades" placeholder="例: 120"></div>
+      <div class="input-item"><label>勝ちトレード数</label><input type="number" id="in-wins" placeholder="例: 72"></div>
+      <div class="input-item"><label>負けトレード数</label><input type="number" id="in-losses" placeholder="例: 48"></div>
+      <div class="input-item"><label>勝率（%）</label><input type="number" id="in-winrate" placeholder="例: 60"></div>
+      <div class="input-item"><label>プロフィットファクター</label><input type="number" id="in-pf" step="0.01" placeholder="例: 1.8"></div>
+      <div class="input-item"><label>平均利益（円）</label><input type="number" id="in-avg-profit" placeholder="例: 1100"></div>
+      <div class="input-item"><label>平均損失（円）</label><input type="number" id="in-avg-loss" placeholder="例: 730"></div>
+      <div class="input-item"><label>リスクリワード比</label><input type="number" id="in-rr" step="0.01" placeholder="例: 2.1"></div>
+      <div class="input-item"><label>連続プラス日数</label><input type="number" id="in-streak" placeholder="例: 5"></div>
+    </div>
+    <div class="input-section-label">📅 日次・月次ベスト</div>
+    <div class="input-grid">
+      <div class="input-item"><label>1日最高利益（円）</label><input type="number" id="in-best-day" placeholder="例: 12000"></div>
+      <div class="input-item"><label>月次最高PF</label><input type="number" id="in-best-pf" step="0.01" placeholder="例: 3.2"></div>
+      <div class="input-item"><label>総トレード日数</label><input type="number" id="in-days" placeholder="例: 45"></div>
+      <div class="input-item"><label>月次最高利益（円）</label><input type="number" id="in-best-month" placeholder="例: 35000"></div>
+    </div>
+    <button class="input-apply" onclick="autoCheck()">⚡ 自動判定する</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='trade_ach_v2';
+let state={};
+function load(){try{const s=localStorage.getItem(KEY);if(s)state=JSON.parse(s);}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+const SECTIONS=[
+  {name:'💰 純利益',items:[
+    {id:'profit1',rank:'bronze',icon:'💴',name:'初めての1万円',desc:'純利益 累計1万円達成',auto:'profit',threshold:10000},
+    {id:'profit2',rank:'bronze',icon:'💵',name:'5万突破',desc:'純利益 累計5万円達成',auto:'profit',threshold:50000},
+    {id:'profit3',rank:'silver',icon:'💰',name:'10万の壁',desc:'純利益 累計10万円達成',auto:'profit',threshold:100000},
+    {id:'profit4',rank:'silver',icon:'💎',name:'30万クラブ',desc:'純利益 累計30万円達成',auto:'profit',threshold:300000},
+    {id:'profit5',rank:'gold',icon:'🏅',name:'50万トレーダー',desc:'純利益 累計50万円達成',auto:'profit',threshold:500000},
+    {id:'profit6',rank:'plat',icon:'👑',name:'百万の男',desc:'純利益 累計100万円達成',auto:'profit',threshold:1000000},
+  ]},
+  {name:'📈 1日・月次ベスト',items:[
+    {id:'day1',rank:'bronze',icon:'🌅',name:'一日1万',desc:'1日の利益 1万円達成',auto:'best-day',threshold:10000},
+    {id:'day2',rank:'silver',icon:'⚡',name:'一日3万',desc:'1日の利益 3万円達成',auto:'best-day',threshold:30000},
+    {id:'day3',rank:'gold',icon:'🔥',name:'一日5万',desc:'1日の利益 5万円達成',auto:'best-day',threshold:50000},
+    {id:'day4',rank:'plat',icon:'🌊',name:'一日10万',desc:'1日の利益 10万円達成',auto:'best-day',threshold:100000},
+    {id:'month1',rank:'silver',icon:'📅',name:'月次3万超え',desc:'月次利益 3万円達成',auto:'best-month',threshold:30000},
+    {id:'month2',rank:'gold',icon:'🗓️',name:'月次10万超え',desc:'月次利益 10万円達成',auto:'best-month',threshold:100000},
+  ]},
+  {name:'🎯 勝率',items:[
+    {id:'wr1',rank:'bronze',icon:'🎯',name:'五分五分超え',desc:'勝率 55%以上',auto:'winrate',threshold:55},
+    {id:'wr2',rank:'silver',icon:'🏹',name:'安定の60%',desc:'勝率 60%以上',auto:'winrate',threshold:60},
+    {id:'wr3',rank:'gold',icon:'💫',name:'エース級',desc:'勝率 65%以上',auto:'winrate',threshold:65},
+    {id:'wr4',rank:'plat',icon:'🌟',name:'勝率70%の壁',desc:'勝率 70%以上',auto:'winrate',threshold:70},
+  ]},
+  {name:'⚖️ リスクリワード・PF',items:[
+    {id:'rr1',rank:'bronze',icon:'⚖️',name:'RR2を刻む',desc:'平均RR 2.0以上',auto:'rr',threshold:2.0},
+    {id:'rr2',rank:'silver',icon:'🗡️',name:'損小利大の体現',desc:'平均RR 2.5以上',auto:'rr',threshold:2.5},
+    {id:'rr3',rank:'gold',icon:'🔱',name:'RR3の境地',desc:'平均RR 3.0以上',auto:'rr',threshold:3.0},
+    {id:'pf1',rank:'bronze',icon:'📊',name:'PF1.5達成',desc:'PF 1.5以上',auto:'pf',threshold:1.5},
+    {id:'pf2',rank:'silver',icon:'📈',name:'PF2.0の壁',desc:'PF 2.0以上',auto:'pf',threshold:2.0},
+    {id:'pf3',rank:'gold',icon:'🏆',name:'PF2.5プロ域',desc:'PF 2.5以上',auto:'pf',threshold:2.5},
+    {id:'pf4',rank:'plat',icon:'✨',name:'PF3.0伝説',desc:'月次最高PF 3.0以上',auto:'best-pf',threshold:3.0},
+  ]},
+  {name:'🔢 トレード回数・日数',items:[
+    {id:'tr1',rank:'bronze',icon:'🌱',name:'10回の経験',desc:'総トレード 10回',auto:'trades',threshold:10},
+    {id:'tr2',rank:'bronze',icon:'📝',name:'50回の積み重ね',desc:'総トレード 50回',auto:'trades',threshold:50},
+    {id:'tr3',rank:'silver',icon:'💪',name:'100回突破',desc:'総トレード 100回',auto:'trades',threshold:100},
+    {id:'tr4',rank:'gold',icon:'🗺️',name:'500回の戦士',desc:'総トレード 500回',auto:'trades',threshold:500},
+    {id:'dy1',rank:'bronze',icon:'📅',name:'一週間の戦士',desc:'トレード継続 7日',auto:'days',threshold:7},
+    {id:'dy2',rank:'silver',icon:'📆',name:'一ヶ月トレーダー',desc:'トレード継続 30日',auto:'days',threshold:30},
+    {id:'dy3',rank:'gold',icon:'🗓️',name:'三ヶ月の鍛錬',desc:'トレード継続 90日',auto:'days',threshold:90},
+    {id:'dy4',rank:'plat',icon:'🏯',name:'半年の侍',desc:'トレード継続 180日',auto:'days',threshold:180},
+  ]},
+  {name:'🔥 連続プラス',items:[
+    {id:'st1',rank:'bronze',icon:'🌱',name:'3日連続プラス',desc:'3日連続でプラス収支',auto:'streak',threshold:3},
+    {id:'st2',rank:'silver',icon:'🔥',name:'5日連続プラス',desc:'5日連続でプラス収支',auto:'streak',threshold:5},
+    {id:'st3',rank:'gold',icon:'⚡',name:'10日連続プラス',desc:'10日連続でプラス収支',auto:'streak',threshold:10},
+    {id:'st4',rank:'plat',icon:'🌊',name:'20日連続無敗',desc:'20日連続でプラス収支',auto:'streak',threshold:20},
+  ]},
+  {name:'🧘 規律・メンタル',items:[
+    {id:'rule1',rank:'bronze',icon:'✂️',name:'損切りを守った',desc:'ルール通りに損切り撤退',auto:null},
+    {id:'rule2',rank:'silver',icon:'🛡️',name:'ナンピンゼロ',desc:'1ヶ月間ナンピンなし',auto:null},
+    {id:'rule3',rank:'silver',icon:'🌙',name:'持ち越しゼロ',desc:'1ヶ月間翌日持ち越しなし',auto:null},
+    {id:'rule4',rank:'gold',icon:'🧘',name:'完璧な規律',desc:'1ヶ月間全ルール遵守',auto:null},
+    {id:'rule5',rank:'plat',icon:'🔮',name:'鋼のメンタル',desc:'大損後に即日ルール内復帰',auto:null},
+  ]},
+  {name:'⭐ 特別実績',items:[
+    {id:'sp1',rank:'bronze',icon:'🌅',name:'初トレード',desc:'はじめてのエントリー',auto:null},
+    {id:'sp2',rank:'silver',icon:'🎰',name:'一発逆転',desc:'連敗後に月間プラス転換',auto:null},
+    {id:'sp3',rank:'gold',icon:'🦅',name:'完璧な一日',desc:'その日の全エントリーがRR2以上',auto:null},
+    {id:'sp4',rank:'gold',icon:'🎯',name:'有言実行',desc:'週の目標を達成',auto:null},
+    {id:'sp5',rank:'plat',icon:'🐲',name:'伝説のトレーダー',desc:'全実績解除',auto:null},
+  ]},
+];
+
+const RC={bronze:'#cd7f32',silver:'#a8b8d0',gold:'#e8b84b',plat:'#70d0ff'};
+const RL={bronze:'銅',silver:'銀',gold:'金',plat:'白金'};
+
+function render(){
+  const c=document.getElementById('ach-container');
+  c.innerHTML='';
+  let total=0,unlocked=0,goldC=0,platC=0;
+  SECTIONS.forEach(sec=>{
+    const h=document.createElement('div');
+    h.className='sec-head';h.textContent=sec.name;c.appendChild(h);
+    const g=document.createElement('div');g.className='ach-grid';
+    sec.items.forEach(item=>{
+      total++;
+      const s=state[item.id]||{};
+      const u=!!s.unlocked;
+      if(u)unlocked++;
+      if(u&&item.rank==='gold')goldC++;
+      if(u&&item.rank==='plat')platC++;
+      const el=document.createElement('div');
+      el.className='ach'+(u?' unlocked':'');
+      el.style.setProperty('--ac',RC[item.rank]);
+      el.id='ach-'+item.id;
+      el.onclick=()=>toggle(item.id);
+      el.innerHTML=`<div class="ach-check">${u?'✓':''}</div><div class="ach-rank rank-${item.rank}">${RL[item.rank]}</div><span class="ach-icon">${item.icon}</span><div class="ach-name">${item.name}</div><div class="ach-desc">${item.desc}</div><div class="ach-date">${u?'✦ '+(s.date||'達成済み'):'未達成'}</div>`;
+      g.appendChild(el);
+    });
+    c.appendChild(g);
+  });
+  document.getElementById('countUnlocked').textContent=unlocked;
+  document.getElementById('countTotal').textContent=total;
+  document.getElementById('st-unlocked').textContent=unlocked;
+  document.getElementById('st-total').textContent=total;
+  document.getElementById('st-gold').textContent=goldC;
+  document.getElementById('st-plat').textContent=platC;
+}
+
+function toggle(id){
+  const s=state[id]||{};
+  if(s.unlocked){state[id]={unlocked:false};toast('🔒 実績を未達成に戻した');}
+  else{
+    const now=new Date();
+    state[id]={unlocked:true,date:`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`};
+    const el=document.getElementById('ach-'+id);
+    if(el){el.classList.add('just-unlocked');setTimeout(()=>el.classList.remove('just-unlocked'),500);}
+    toast('🏆 実績解除！');
+  }
+  save();render();
+}
+
+function autoCheck(){
+  const v={
+    profit:parseFloat(document.getElementById('in-profit').value)||0,
+    winrate:parseFloat(document.getElementById('in-winrate').value)||0,
+    rr:parseFloat(document.getElementById('in-rr').value)||0,
+    pf:parseFloat(document.getElementById('in-pf').value)||0,
+    trades:parseFloat(document.getElementById('in-trades').value)||0,
+    days:parseFloat(document.getElementById('in-days').value)||0,
+    streak:parseFloat(document.getElementById('in-streak').value)||0,
+    'best-day':parseFloat(document.getElementById('in-best-day').value)||0,
+    'best-pf':parseFloat(document.getElementById('in-best-pf').value)||0,
+    'best-month':parseFloat(document.getElementById('in-best-month').value)||0,
+  };
+  let n=0;
+  const now=new Date();
+  const date=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
+  SECTIONS.forEach(sec=>sec.items.forEach(item=>{
+    if(!item.auto||state[item.id]?.unlocked)return;
+    if((v[item.auto]||0)>=item.threshold){
+      state[item.id]={unlocked:true,date};n++;
+      const el=document.getElementById('ach-'+item.id);
+      if(el){el.classList.add('just-unlocked');setTimeout(()=>el.classList.remove('just-unlocked'),500);}
+    }
+  }));
+  save();render();
+  toast(n>0?`⚡ ${n}件の実績を自動解除！`:'📊 新たな解除はなし');
+}
+
+function switchTab(tab,el){
+  document.getElementById('tab-ach').classList.toggle('hidden',tab!=='ach');
+  document.getElementById('tab-input').classList.toggle('hidden',tab!=='input');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+let tt;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+load();render();
+</script>
+</body>
+</html>

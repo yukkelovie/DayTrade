@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Antique+Soft&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#05070c;--bg2:#0a0e1a;--bg3:#111825;
+  --bg:#05070c;--bg2:#0a0e1a;
   --gold:#e8b84b;--gold2:#f5d07a;
   --jade:#2dcc8a;--dim:#3a4a6a;--text:#c8d4f0;--border:#1a2238;
   --bronze:#cd7f32;--silver:#a8b8d0;--gld:#e8b84b;--plat:#70d0ff;
@@ -20,8 +20,8 @@ body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sa
 .header-right{float:right;text-align:right;}
 .header-count{font-size:11px;color:var(--dim);margin-top:4px;}
 .header-count span{color:var(--gold);font-weight:700;}
-.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;}
-.tab{flex:none;padding:10px 16px;font-size:10px;letter-spacing:.08em;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);}
+.tab{flex:1;padding:10px 8px;font-size:10px;letter-spacing:.08em;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 16px;}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sa
 .input-panel-title{font-size:10px;color:var(--dim);letter-spacing:.1em;margin-bottom:10px;}
 .input-section-label{font-size:9px;color:var(--gold);letter-spacing:.1em;margin:12px 0 6px;padding-top:10px;border-top:1px solid var(--border);}
 .input-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.input-item label{display:block;font-size:9px;color:var(--dim);margin-bottom:3px;letter-spacing:.04em;}
+.input-item label{display:block;font-size:9px;color:var(--dim);margin-bottom:3px;}
 .input-item input{width:100%;background:#050810;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;padding:6px 8px;outline:none;transition:border .2s;}
 .input-item input:focus{border-color:var(--gold);}
 .input-apply{margin-top:10px;width:100%;background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold);border-radius:8px;color:var(--gold);font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;font-weight:700;padding:9px;cursor:pointer;letter-spacing:.1em;transition:all .2s;}
@@ -82,101 +82,110 @@ body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sa
   <div class="stat-card"><div class="stat-val" id="st-plat">0</div><div class="stat-label">白金トロフィー</div></div>
 </div>
 <div id="tab-ach"><div id="ach-container"></div></div>
+
 <div id="tab-input" class="hidden">
   <div class="input-panel">
     <div class="input-panel-title">📋 全トレード累計</div>
     <div class="input-grid">
-      <div class="input-item"><label>純損益（円）</label><input type="number" id="in-pnl" placeholder="例: 45000"></div>
-      <div class="input-item"><label>純利益（円）</label><input type="number" id="in-profit" placeholder="例: 80000"></div>
-      <div class="input-item"><label>純損失（円）</label><input type="number" id="in-loss" placeholder="例: 35000"></div>
-      <div class="input-item"><label>総トレード数</label><input type="number" id="in-trades" placeholder="例: 120"></div>
+      <div class="input-item"><label>累計純損益（円）</label><input type="number" id="in-pnl-total" placeholder="例: 45000"></div>
+      <div class="input-item"><label>総トレード数（回）</label><input type="number" id="in-trades" placeholder="例: 120"></div>
       <div class="input-item"><label>勝ちトレード数</label><input type="number" id="in-wins" placeholder="例: 72"></div>
       <div class="input-item"><label>負けトレード数</label><input type="number" id="in-losses" placeholder="例: 48"></div>
       <div class="input-item"><label>勝率（%）</label><input type="number" id="in-winrate" placeholder="例: 60"></div>
-      <div class="input-item"><label>プロフィットファクター</label><input type="number" id="in-pf" step="0.01" placeholder="例: 1.8"></div>
-      <div class="input-item"><label>平均利益（円）</label><input type="number" id="in-avg-profit" placeholder="例: 1100"></div>
-      <div class="input-item"><label>平均損失（円）</label><input type="number" id="in-avg-loss" placeholder="例: 730"></div>
-      <div class="input-item"><label>リスクリワード比</label><input type="number" id="in-rr" step="0.01" placeholder="例: 2.1"></div>
+      <div class="input-item"><label>平均RR</label><input type="number" id="in-rr" step="0.01" placeholder="例: 2.1"></div>
+      <div class="input-item"><label>継続月数</label><input type="number" id="in-months" placeholder="例: 3"></div>
       <div class="input-item"><label>連続プラス日数</label><input type="number" id="in-streak" placeholder="例: 5"></div>
     </div>
-    <div class="input-section-label">📅 日次・月次ベスト</div>
+
+    <div class="input-section-label">📅 月次</div>
     <div class="input-grid">
-      <div class="input-item"><label>1日最高利益（円）</label><input type="number" id="in-best-day" placeholder="例: 12000"></div>
-      <div class="input-item"><label>月次最高PF</label><input type="number" id="in-best-pf" step="0.01" placeholder="例: 3.2"></div>
-      <div class="input-item"><label>総トレード日数</label><input type="number" id="in-days" placeholder="例: 45"></div>
-      <div class="input-item"><label>月次最高利益（円）</label><input type="number" id="in-best-month" placeholder="例: 35000"></div>
+      <div class="input-item"><label>今月の純損益（円）</label><input type="number" id="in-pnl-month" placeholder="例: 28000"></div>
+      <div class="input-item"><label>月次最高PF</label><input type="number" id="in-best-pf" step="0.01" placeholder="例: 2.8"></div>
+      <div class="input-item"><label>月次最高純損益（円）</label><input type="number" id="in-best-month" placeholder="例: 35000"></div>
     </div>
+
+    <div class="input-section-label">📆 日次</div>
+    <div class="input-grid">
+      <div class="input-item"><label>1日最高純損益（円）</label><input type="number" id="in-best-day" placeholder="例: 12000"></div>
+      <div class="input-item"><label>1日最大損失（円）</label><input type="number" id="in-worst-day" placeholder="例: -5000"></div>
+    </div>
+
     <button class="input-apply" onclick="autoCheck()">⚡ 自動判定する</button>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <script>
-const KEY='trade_ach_v2';
+const KEY='trade_ach_v3';
 let state={};
 function load(){try{const s=localStorage.getItem(KEY);if(s)state=JSON.parse(s);}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 
 const SECTIONS=[
-  {name:'💰 純利益',items:[
-    {id:'profit1',rank:'bronze',icon:'💴',name:'初めての1万円',desc:'純利益 累計1万円達成',auto:'profit',threshold:10000},
-    {id:'profit2',rank:'bronze',icon:'💵',name:'5万突破',desc:'純利益 累計5万円達成',auto:'profit',threshold:50000},
-    {id:'profit3',rank:'silver',icon:'💰',name:'10万の壁',desc:'純利益 累計10万円達成',auto:'profit',threshold:100000},
-    {id:'profit4',rank:'silver',icon:'💎',name:'30万クラブ',desc:'純利益 累計30万円達成',auto:'profit',threshold:300000},
-    {id:'profit5',rank:'gold',icon:'🏅',name:'50万トレーダー',desc:'純利益 累計50万円達成',auto:'profit',threshold:500000},
-    {id:'profit6',rank:'plat',icon:'👑',name:'百万の男',desc:'純利益 累計100万円達成',auto:'profit',threshold:1000000},
+  {name:'💰 累計純損益',items:[
+    {id:'pnl1', rank:'bronze',icon:'💴',name:'初めての1万円',    desc:'累計純損益 +1万円達成',   auto:'pnl-total', threshold:10000},
+    {id:'pnl2', rank:'bronze',icon:'💵',name:'5万突破',          desc:'累計純損益 +5万円達成',   auto:'pnl-total', threshold:50000},
+    {id:'pnl3', rank:'silver',icon:'💰',name:'10万の壁',         desc:'累計純損益 +10万円達成',  auto:'pnl-total', threshold:100000},
+    {id:'pnl4', rank:'silver',icon:'💎',name:'30万クラブ',       desc:'累計純損益 +30万円達成',  auto:'pnl-total', threshold:300000},
+    {id:'pnl5', rank:'gold',  icon:'🏅',name:'50万トレーダー',   desc:'累計純損益 +50万円達成',  auto:'pnl-total', threshold:500000},
+    {id:'pnl6', rank:'plat',  icon:'👑',name:'百万の男',         desc:'累計純損益 +100万円達成', auto:'pnl-total', threshold:1000000},
   ]},
-  {name:'📈 1日・月次ベスト',items:[
-    {id:'day1',rank:'bronze',icon:'🌅',name:'一日1万',desc:'1日の利益 1万円達成',auto:'best-day',threshold:10000},
-    {id:'day2',rank:'silver',icon:'⚡',name:'一日3万',desc:'1日の利益 3万円達成',auto:'best-day',threshold:30000},
-    {id:'day3',rank:'gold',icon:'🔥',name:'一日5万',desc:'1日の利益 5万円達成',auto:'best-day',threshold:50000},
-    {id:'day4',rank:'plat',icon:'🌊',name:'一日10万',desc:'1日の利益 10万円達成',auto:'best-day',threshold:100000},
-    {id:'month1',rank:'silver',icon:'📅',name:'月次3万超え',desc:'月次利益 3万円達成',auto:'best-month',threshold:30000},
-    {id:'month2',rank:'gold',icon:'🗓️',name:'月次10万超え',desc:'月次利益 10万円達成',auto:'best-month',threshold:100000},
+  {name:'📅 月次損益',items:[
+    {id:'mon1', rank:'bronze',icon:'🌱',name:'月次プラス',        desc:'月次純損益 +1万円以上',   auto:'pnl-month', threshold:10000},
+    {id:'mon2', rank:'silver',icon:'📈',name:'月次3万超え',       desc:'月次最高純損益 +3万円',   auto:'best-month', threshold:30000},
+    {id:'mon3', rank:'gold',  icon:'🗓️',name:'月次10万超え',     desc:'月次最高純損益 +10万円',  auto:'best-month', threshold:100000},
+    {id:'mon4', rank:'plat',  icon:'🌙',name:'月次30万超え',      desc:'月次最高純損益 +30万円',  auto:'best-month', threshold:300000},
+  ]},
+  {name:'📆 日次損益',items:[
+    {id:'day1', rank:'bronze',icon:'🌅',name:'一日1万',           desc:'1日の純損益 +1万円達成',  auto:'best-day', threshold:10000},
+    {id:'day2', rank:'silver',icon:'⚡',name:'一日3万',           desc:'1日の純損益 +3万円達成',  auto:'best-day', threshold:30000},
+    {id:'day3', rank:'gold',  icon:'🔥',name:'一日5万',           desc:'1日の純損益 +5万円達成',  auto:'best-day', threshold:50000},
+    {id:'day4', rank:'plat',  icon:'🌊',name:'一日10万',          desc:'1日の純損益 +10万円達成', auto:'best-day', threshold:100000},
+  ]},
+  {name:'⚖️ PF・RR',items:[
+    {id:'pf1',  rank:'bronze',icon:'📊',name:'月次PF1.5',        desc:'月次PF 1.5以上を記録',    auto:'best-pf', threshold:1.5},
+    {id:'pf2',  rank:'silver',icon:'📈',name:'月次PF2.0',        desc:'月次PF 2.0以上を記録',    auto:'best-pf', threshold:2.0},
+    {id:'pf3',  rank:'gold',  icon:'🏆',name:'月次PF2.5',        desc:'月次PF 2.5以上を記録',    auto:'best-pf', threshold:2.5},
+    {id:'pf4',  rank:'plat',  icon:'✨',name:'月次PF3.0伝説',    desc:'月次PF 3.0以上を記録',    auto:'best-pf', threshold:3.0},
+    {id:'rr1',  rank:'bronze',icon:'⚖️',name:'RR2を刻む',        desc:'平均RR 2.0以上',          auto:'rr', threshold:2.0},
+    {id:'rr2',  rank:'silver',icon:'🗡️',name:'損小利大の体現',   desc:'平均RR 2.5以上',          auto:'rr', threshold:2.5},
+    {id:'rr3',  rank:'gold',  icon:'🔱',name:'RR3の境地',         desc:'平均RR 3.0以上',          auto:'rr', threshold:3.0},
   ]},
   {name:'🎯 勝率',items:[
-    {id:'wr1',rank:'bronze',icon:'🎯',name:'五分五分超え',desc:'勝率 55%以上',auto:'winrate',threshold:55},
-    {id:'wr2',rank:'silver',icon:'🏹',name:'安定の60%',desc:'勝率 60%以上',auto:'winrate',threshold:60},
-    {id:'wr3',rank:'gold',icon:'💫',name:'エース級',desc:'勝率 65%以上',auto:'winrate',threshold:65},
-    {id:'wr4',rank:'plat',icon:'🌟',name:'勝率70%の壁',desc:'勝率 70%以上',auto:'winrate',threshold:70},
+    {id:'wr1',  rank:'bronze',icon:'🎯',name:'五分五分超え',      desc:'勝率 55%以上',            auto:'winrate', threshold:55},
+    {id:'wr2',  rank:'silver',icon:'🏹',name:'安定の60%',         desc:'勝率 60%以上',            auto:'winrate', threshold:60},
+    {id:'wr3',  rank:'gold',  icon:'💫',name:'エース級',          desc:'勝率 65%以上',            auto:'winrate', threshold:65},
+    {id:'wr4',  rank:'plat',  icon:'🌟',name:'勝率70%の壁',       desc:'勝率 70%以上',            auto:'winrate', threshold:70},
   ]},
-  {name:'⚖️ リスクリワード・PF',items:[
-    {id:'rr1',rank:'bronze',icon:'⚖️',name:'RR2を刻む',desc:'平均RR 2.0以上',auto:'rr',threshold:2.0},
-    {id:'rr2',rank:'silver',icon:'🗡️',name:'損小利大の体現',desc:'平均RR 2.5以上',auto:'rr',threshold:2.5},
-    {id:'rr3',rank:'gold',icon:'🔱',name:'RR3の境地',desc:'平均RR 3.0以上',auto:'rr',threshold:3.0},
-    {id:'pf1',rank:'bronze',icon:'📊',name:'PF1.5達成',desc:'PF 1.5以上',auto:'pf',threshold:1.5},
-    {id:'pf2',rank:'silver',icon:'📈',name:'PF2.0の壁',desc:'PF 2.0以上',auto:'pf',threshold:2.0},
-    {id:'pf3',rank:'gold',icon:'🏆',name:'PF2.5プロ域',desc:'PF 2.5以上',auto:'pf',threshold:2.5},
-    {id:'pf4',rank:'plat',icon:'✨',name:'PF3.0伝説',desc:'月次最高PF 3.0以上',auto:'best-pf',threshold:3.0},
-  ]},
-  {name:'🔢 トレード回数・日数',items:[
-    {id:'tr1',rank:'bronze',icon:'🌱',name:'10回の経験',desc:'総トレード 10回',auto:'trades',threshold:10},
-    {id:'tr2',rank:'bronze',icon:'📝',name:'50回の積み重ね',desc:'総トレード 50回',auto:'trades',threshold:50},
-    {id:'tr3',rank:'silver',icon:'💪',name:'100回突破',desc:'総トレード 100回',auto:'trades',threshold:100},
-    {id:'tr4',rank:'gold',icon:'🗺️',name:'500回の戦士',desc:'総トレード 500回',auto:'trades',threshold:500},
-    {id:'dy1',rank:'bronze',icon:'📅',name:'一週間の戦士',desc:'トレード継続 7日',auto:'days',threshold:7},
-    {id:'dy2',rank:'silver',icon:'📆',name:'一ヶ月トレーダー',desc:'トレード継続 30日',auto:'days',threshold:30},
-    {id:'dy3',rank:'gold',icon:'🗓️',name:'三ヶ月の鍛錬',desc:'トレード継続 90日',auto:'days',threshold:90},
-    {id:'dy4',rank:'plat',icon:'🏯',name:'半年の侍',desc:'トレード継続 180日',auto:'days',threshold:180},
+  {name:'🔢 トレード回数・継続',items:[
+    {id:'tr1',  rank:'bronze',icon:'🌱',name:'10回の経験',        desc:'総トレード 10回',         auto:'trades', threshold:10},
+    {id:'tr2',  rank:'bronze',icon:'📝',name:'50回の積み重ね',    desc:'総トレード 50回',         auto:'trades', threshold:50},
+    {id:'tr3',  rank:'silver',icon:'💪',name:'100回突破',         desc:'総トレード 100回',        auto:'trades', threshold:100},
+    {id:'tr4',  rank:'gold',  icon:'🗺️',name:'500回の戦士',      desc:'総トレード 500回',        auto:'trades', threshold:500},
+    {id:'mo1',  rank:'bronze',icon:'📅',name:'1ヶ月継続',         desc:'トレード継続 1ヶ月',      auto:'months', threshold:1},
+    {id:'mo2',  rank:'silver',icon:'📆',name:'3ヶ月継続',         desc:'トレード継続 3ヶ月',      auto:'months', threshold:3},
+    {id:'mo3',  rank:'gold',  icon:'🗓️',name:'半年継続',         desc:'トレード継続 6ヶ月',      auto:'months', threshold:6},
+    {id:'mo4',  rank:'plat',  icon:'🏯',name:'1年継続',           desc:'トレード継続 12ヶ月',     auto:'months', threshold:12},
   ]},
   {name:'🔥 連続プラス',items:[
-    {id:'st1',rank:'bronze',icon:'🌱',name:'3日連続プラス',desc:'3日連続でプラス収支',auto:'streak',threshold:3},
-    {id:'st2',rank:'silver',icon:'🔥',name:'5日連続プラス',desc:'5日連続でプラス収支',auto:'streak',threshold:5},
-    {id:'st3',rank:'gold',icon:'⚡',name:'10日連続プラス',desc:'10日連続でプラス収支',auto:'streak',threshold:10},
-    {id:'st4',rank:'plat',icon:'🌊',name:'20日連続無敗',desc:'20日連続でプラス収支',auto:'streak',threshold:20},
+    {id:'st1',  rank:'bronze',icon:'🌱',name:'3日連続プラス',     desc:'3日連続でプラス収支',     auto:'streak', threshold:3},
+    {id:'st2',  rank:'silver',icon:'🔥',name:'5日連続プラス',     desc:'5日連続でプラス収支',     auto:'streak', threshold:5},
+    {id:'st3',  rank:'gold',  icon:'⚡',name:'10日連続プラス',    desc:'10日連続でプラス収支',    auto:'streak', threshold:10},
+    {id:'st4',  rank:'plat',  icon:'🌊',name:'20日連続無敗',      desc:'20日連続でプラス収支',    auto:'streak', threshold:20},
   ]},
   {name:'🧘 規律・メンタル',items:[
-    {id:'rule1',rank:'bronze',icon:'✂️',name:'損切りを守った',desc:'ルール通りに損切り撤退',auto:null},
-    {id:'rule2',rank:'silver',icon:'🛡️',name:'ナンピンゼロ',desc:'1ヶ月間ナンピンなし',auto:null},
-    {id:'rule3',rank:'silver',icon:'🌙',name:'持ち越しゼロ',desc:'1ヶ月間翌日持ち越しなし',auto:null},
-    {id:'rule4',rank:'gold',icon:'🧘',name:'完璧な規律',desc:'1ヶ月間全ルール遵守',auto:null},
-    {id:'rule5',rank:'plat',icon:'🔮',name:'鋼のメンタル',desc:'大損後に即日ルール内復帰',auto:null},
+    {id:'rule1',rank:'bronze',icon:'✂️',name:'損切りを守った',    desc:'ルール通りに損切り撤退',  auto:null},
+    {id:'rule2',rank:'silver',icon:'🛡️',name:'ナンピンゼロ',     desc:'1ヶ月間ナンピンなし',     auto:null},
+    {id:'rule3',rank:'silver',icon:'🌙',name:'持ち越しゼロ',      desc:'1ヶ月間翌日持ち越しなし', auto:null},
+    {id:'rule4',rank:'gold',  icon:'🧘',name:'完璧な規律',        desc:'1ヶ月間全ルール遵守',     auto:null},
+    {id:'rule5',rank:'plat',  icon:'🔮',name:'鋼のメンタル',      desc:'大損後に即日ルール内復帰', auto:null},
   ]},
   {name:'⭐ 特別実績',items:[
-    {id:'sp1',rank:'bronze',icon:'🌅',name:'初トレード',desc:'はじめてのエントリー',auto:null},
-    {id:'sp2',rank:'silver',icon:'🎰',name:'一発逆転',desc:'連敗後に月間プラス転換',auto:null},
-    {id:'sp3',rank:'gold',icon:'🦅',name:'完璧な一日',desc:'その日の全エントリーがRR2以上',auto:null},
-    {id:'sp4',rank:'gold',icon:'🎯',name:'有言実行',desc:'週の目標を達成',auto:null},
-    {id:'sp5',rank:'plat',icon:'🐲',name:'伝説のトレーダー',desc:'全実績解除',auto:null},
+    {id:'sp1',  rank:'bronze',icon:'🌅',name:'初トレード',        desc:'はじめてのエントリー',    auto:null},
+    {id:'sp2',  rank:'silver',icon:'🎰',name:'一発逆転',          desc:'連敗後に月間プラス転換',  auto:null},
+    {id:'sp3',  rank:'gold',  icon:'🦅',name:'完璧な一日',        desc:'全エントリーがRR2以上',   auto:null},
+    {id:'sp4',  rank:'gold',  icon:'🎯',name:'有言実行',          desc:'週の目標を達成',          auto:null},
+    {id:'sp5',  rank:'plat',  icon:'🐲',name:'伝説のトレーダー',  desc:'全実績解除',              auto:null},
   ]},
 ];
 
@@ -188,21 +197,18 @@ function render(){
   c.innerHTML='';
   let total=0,unlocked=0,goldC=0,platC=0;
   SECTIONS.forEach(sec=>{
-    const h=document.createElement('div');
-    h.className='sec-head';h.textContent=sec.name;c.appendChild(h);
+    const h=document.createElement('div');h.className='sec-head';h.textContent=sec.name;c.appendChild(h);
     const g=document.createElement('div');g.className='ach-grid';
     sec.items.forEach(item=>{
       total++;
-      const s=state[item.id]||{};
-      const u=!!s.unlocked;
+      const s=state[item.id]||{};const u=!!s.unlocked;
       if(u)unlocked++;
       if(u&&item.rank==='gold')goldC++;
       if(u&&item.rank==='plat')platC++;
       const el=document.createElement('div');
       el.className='ach'+(u?' unlocked':'');
       el.style.setProperty('--ac',RC[item.rank]);
-      el.id='ach-'+item.id;
-      el.onclick=()=>toggle(item.id);
+      el.id='ach-'+item.id;el.onclick=()=>toggle(item.id);
       el.innerHTML=`<div class="ach-check">${u?'✓':''}</div><div class="ach-rank rank-${item.rank}">${RL[item.rank]}</div><span class="ach-icon">${item.icon}</span><div class="ach-name">${item.name}</div><div class="ach-desc">${item.desc}</div><div class="ach-date">${u?'✦ '+(s.date||'達成済み'):'未達成'}</div>`;
       g.appendChild(el);
     });
@@ -231,16 +237,16 @@ function toggle(id){
 
 function autoCheck(){
   const v={
-    profit:parseFloat(document.getElementById('in-profit').value)||0,
-    winrate:parseFloat(document.getElementById('in-winrate').value)||0,
-    rr:parseFloat(document.getElementById('in-rr').value)||0,
-    pf:parseFloat(document.getElementById('in-pf').value)||0,
-    trades:parseFloat(document.getElementById('in-trades').value)||0,
-    days:parseFloat(document.getElementById('in-days').value)||0,
-    streak:parseFloat(document.getElementById('in-streak').value)||0,
-    'best-day':parseFloat(document.getElementById('in-best-day').value)||0,
-    'best-pf':parseFloat(document.getElementById('in-best-pf').value)||0,
+    'pnl-total': parseFloat(document.getElementById('in-pnl-total').value)||0,
+    trades:      parseFloat(document.getElementById('in-trades').value)||0,
+    winrate:     parseFloat(document.getElementById('in-winrate').value)||0,
+    rr:          parseFloat(document.getElementById('in-rr').value)||0,
+    months:      parseFloat(document.getElementById('in-months').value)||0,
+    streak:      parseFloat(document.getElementById('in-streak').value)||0,
+    'pnl-month': parseFloat(document.getElementById('in-pnl-month').value)||0,
+    'best-pf':   parseFloat(document.getElementById('in-best-pf').value)||0,
     'best-month':parseFloat(document.getElementById('in-best-month').value)||0,
+    'best-day':  parseFloat(document.getElementById('in-best-day').value)||0,
   };
   let n=0;
   const now=new Date();

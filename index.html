@@ -16,7 +16,12 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:80px;-webkit-text-fill-color:var(--text);}
 /* Netlify/Safari対策: 主要テキストを強制指定 */
-.stat-val{-webkit-text-fill-color:inherit !important;}
+.stat-val{-webkit-text-fill-color:#e8b84b !important;}
+#s-pnl{-webkit-text-fill-color:#e8b84b !important;}
+#s-wr{-webkit-text-fill-color:#e8b84b !important;}
+#s-pf{-webkit-text-fill-color:#e8b84b !important;}
+#s-rr{-webkit-text-fill-color:#e8b84b !important;}
+#st-unlocked,#st-total,#st-gold,#st-plat{-webkit-text-fill-color:#e8b84b !important;}
 .stat-label{-webkit-text-fill-color:#3a4a6a !important;}
 .sum-val{-webkit-text-fill-color:inherit !important;}
 .sum-label{-webkit-text-fill-color:#3a4a6a !important;}
@@ -578,6 +583,7 @@ function renderAnalytics(){
     const v=st.totalPnl,pel=document.getElementById('s-pnl');
     pel.textContent=(v>=0?'+':'')+Math.round(v).toLocaleString()+'円';
     pel.style.color=v>=0?'var(--jade)':'var(--red)';
+    pel.style.webkitTextFillColor=v>=0?'#2dcc8a':'#ff4444';
     document.getElementById('s-wr').textContent=st.winRate.toFixed(1)+'%';
     document.getElementById('s-pf').textContent=st.pf>=99?'∞':st.pf.toFixed(2);
     document.getElementById('s-rr').textContent=st.rr.toFixed(2);
@@ -589,7 +595,7 @@ function renderAnalytics(){
   if(!show){
     // データなしのときトップカードをリセット
     const pel=document.getElementById('s-pnl');
-    pel.textContent='¥0';pel.style.color='var(--gold)';
+    pel.textContent='¥0';pel.style.color='var(--gold)';pel.style.webkitTextFillColor='#e8b84b';
     document.getElementById('s-wr').textContent='0%';
     document.getElementById('s-pf').textContent='0.0';
     document.getElementById('s-rr').textContent='0.0';

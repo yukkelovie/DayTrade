@@ -14,7 +14,38 @@
   --bronze:#cd7f32;--silver:#a8b8d0;--gld:#e8b84b;--plat:#70d0ff;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:80px;}
+body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:80px;-webkit-text-fill-color:var(--text);}
+/* Netlify/Safari対策: 主要テキストを強制指定 */
+.stat-val{-webkit-text-fill-color:inherit !important;}
+.stat-label{-webkit-text-fill-color:#3a4a6a !important;}
+.sum-val{-webkit-text-fill-color:inherit !important;}
+.sum-label{-webkit-text-fill-color:#3a4a6a !important;}
+.panel-title{-webkit-text-fill-color:#3a4a6a !important;}
+.rank-stats{-webkit-text-fill-color:#3a4a6a !important;}
+.rank-stats span{-webkit-text-fill-color:var(--text) !important;}
+.log-date{-webkit-text-fill-color:#3a4a6a !important;}
+.log-pnl{-webkit-text-fill-color:inherit !important;}
+.ach-name{-webkit-text-fill-color:var(--text) !important;}
+.ach-desc{-webkit-text-fill-color:#3a4a6a !important;}
+.ach-date{-webkit-text-fill-color:#3a4a6a !important;}
+.ach.unlocked .ach-name{-webkit-text-fill-color:var(--gold2) !important;}
+.ach.unlocked .ach-date{-webkit-text-fill-color:var(--jade) !important;}
+.tab{-webkit-text-fill-color:#3a4a6a !important;}
+.tab.active{-webkit-text-fill-color:var(--gold) !important;}
+.btn{-webkit-text-fill-color:var(--gold) !important;}
+.btn-red{-webkit-text-fill-color:var(--red) !important;}
+.btn-jade{-webkit-text-fill-color:var(--jade) !important;}
+.header-logo{-webkit-text-fill-color:var(--gold) !important;}
+.header-sub{-webkit-text-fill-color:#3a4a6a !important;}
+.fi label{-webkit-text-fill-color:#3a4a6a !important;}
+.rr-bar-label{-webkit-text-fill-color:#3a4a6a !important;}
+.sec-head{-webkit-text-fill-color:#3a4a6a !important;}
+.sum-val.pos{-webkit-text-fill-color:var(--jade) !important;}
+.sum-val.neg{-webkit-text-fill-color:var(--red) !important;}
+.sum-val.neu{-webkit-text-fill-color:var(--gold) !important;}
+.log-pnl.pos{-webkit-text-fill-color:var(--jade) !important;}
+.log-pnl.neg{-webkit-text-fill-color:var(--red) !important;}
+.stat-val#s-pnl{-webkit-text-fill-color:inherit !important;}
 .header{background:linear-gradient(180deg,#0a0e1a,#05070c);border-bottom:1px solid var(--border);padding:16px 20px 12px;position:sticky;top:0;z-index:100;}
 .header-logo{font-family:'Zen Antique Soft',serif;font-size:20px;color:var(--gold);letter-spacing:.2em;}
 .header-sub{font-size:10px;color:var(--dim);letter-spacing:.1em;margin-top:2px;}

@@ -164,6 +164,8 @@ canvas{display:block;width:100%;height:100%;}
 .log-row.dragging{opacity:.4;background:#1a2238;}
 .log-row.drag-over{border-top:2px solid var(--gold);}
 .log-row.sort-active{cursor:default;}
+.log-row.sort-active *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+#log-wrap{-webkit-user-select:none;user-select:none;}
 .log-row:last-child{border-bottom:none;}
 .log-date{color:var(--dim);font-size:10px;}
 .log-rr{font-size:9px;color:var(--dim);text-align:center;}

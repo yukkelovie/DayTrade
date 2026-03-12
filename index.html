@@ -163,6 +163,7 @@ canvas{display:block;width:100%;height:100%;}
 .log-row:active{cursor:grabbing;}
 .log-row.dragging{opacity:.4;background:#1a2238;}
 .log-row.drag-over{border-top:2px solid var(--gold);}
+.log-row.sort-active{cursor:default;}
 .log-row:last-child{border-bottom:none;}
 .log-date{color:var(--dim);font-size:10px;}
 .log-rr{font-size:9px;color:var(--dim);text-align:center;}
@@ -313,7 +314,7 @@ canvas{display:block;width:100%;height:100%;}
         <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-sm" style="border-color:#4a8cff;color:#4a8cff;background:linear-gradient(135deg,#00081a,#001028)" onclick="exportCSV()">📥 CSV出力</button>
-          <button class="btn btn-sm" style="border-color:#2dcc8a;color:#2dcc8a;background:linear-gradient(135deg,#001a0e,#002a18)" onclick="finishSort()">並び替え適用</button>
+          <button id="sort-btn" class="btn btn-sm" style="border-color:#9b6dff;color:#9b6dff;background:linear-gradient(135deg,#0a0018,#14002a)" onclick="toggleSortMode()">並び替え</button>
           <button class="btn btn-sm" style="border-color:#ff8c44;color:#ff8c44;background:linear-gradient(135deg,#1a0800,#2a1000)" onclick="clearPeriod()">期間削除</button>
           <button class="btn btn-red btn-sm" onclick="clearAll()">全削除</button>
         </div>
@@ -882,15 +883,32 @@ function exportCSV(){
 
 let _logReversed=false;
 let _sortFiltered=null;
+let _sortMode=false;
 
-function finishSort(){
-  if(_sortFiltered){
-    const filteredSet=new Set(_sortFiltered.map(t=>String(t.id)));
-    const others=trades.filter(t=>!filteredSet.has(String(t.id)));
-    trades=[...others,...(_logReversed?[..._sortFiltered].reverse():_sortFiltered)];
-    saveTrades();
+function toggleSortMode(){
+  _sortMode=!_sortMode;
+  const btn=document.getElementById('sort-btn');
+  if(_sortMode){
+    btn.textContent='適用';
+    btn.style.borderColor='#2dcc8a';
+    btn.style.color='#2dcc8a';
+    btn.style.background='linear-gradient(135deg,#001a0e,#002a18)';
+    showToast('並び替えモード: 長押しで移動');
+  } else {
+    // 適用して保存
+    if(_sortFiltered){
+      const filteredSet=new Set(_sortFiltered.map(t=>String(t.id)));
+      const others=trades.filter(t=>!filteredSet.has(String(t.id)));
+      trades=[...others,...(_logReversed?[..._sortFiltered].reverse():_sortFiltered)];
+      saveTrades();
+      showToast('✅ 順序を保存しました');
+    }
+    btn.textContent='並び替え';
+    btn.style.borderColor='#9b6dff';
+    btn.style.color='#9b6dff';
+    btn.style.background='linear-gradient(135deg,#0a0018,#14002a)';
   }
-  showToast('✅ 順序を保存しました');
+  drawLog();
 }
 function toggleLogOrder(){
   _logReversed=!_logReversed;
@@ -928,23 +946,25 @@ function drawLog(){
   _sortFiltered=filtered;
   wrap.innerHTML=filtered.map(t=>{
     const id=t.id;
-    return `<div class="log-row" draggable="true" data-id="${id}">`
-      +`<div style="color:#9b6dff;font-size:14px;cursor:grab;">⠿</div>`
+    return `<div class="log-row${_sortMode?' sort-active':''}" ${_sortMode?'draggable="true"':''} data-id="${id}">`
+      +(_sortMode?`<div style="color:#9b6dff;font-size:14px;cursor:grab;touch-action:none;">⠿</div>`:`<div></div>`)
       +`<div class="log-date">${t.date.slice(5)}</div>`
       +`<div class="log-pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}${t.pnl.toLocaleString()}円</div>`
       +`<div class="log-actions">`
-      +`<button class="icon-btn" onclick="openEdit('${id}')">✏️</button>`
-      +`<button class="icon-btn del" onclick="deleteTrade('${id}')">🗑</button>`
+      +(!_sortMode?`<button class="icon-btn" onclick="openEdit('${id}')">✏️</button>`:'')
+      +(!_sortMode?`<button class="icon-btn del" onclick="deleteTrade('${id}')">🗑</button>`:'')
       +`</div></div>`;
   }).join('');
-  initDragDrop(wrap, filtered);
+  if(_sortMode) initDragDrop(wrap, filtered);
 }
 
 let _dragSrcId=null;
+let _vibrated=false;
+
 function initDragDrop(wrap, filtered){
   const rows=wrap.querySelectorAll('.log-row');
   rows.forEach(row=>{
-    // PC drag
+    // PC: ドラッグ&ドロップ
     row.addEventListener('dragstart',e=>{
       _dragSrcId=row.dataset.id;
       row.classList.add('dragging');
@@ -964,30 +984,74 @@ function initDragDrop(wrap, filtered){
       if(_dragSrcId===row.dataset.id)return;
       reorderTrades(_dragSrcId, row.dataset.id, filtered);
     });
+  });
 
-    // タッチ操作
-    let touchSrc=null, touchTarget=null;
+  // スマホ: 長押し→浮き上がり→ドラッグ
+  let touchSrc=null, ghost=null, longPressTimer=null, lastTarget=null;
+
+  rows.forEach(row=>{
     row.addEventListener('touchstart',e=>{
-      touchSrc=row;
-      row.classList.add('dragging');
+      _vibrated=false;
+      longPressTimer=setTimeout(()=>{
+        touchSrc=row;
+        if(navigator.vibrate) navigator.vibrate(30);
+        // ゴースト要素作成
+        ghost=row.cloneNode(true);
+        ghost.style.cssText=`position:fixed;width:${row.offsetWidth}px;opacity:.85;
+          box-shadow:0 8px 32px #9b6dff88;border:1px solid #9b6dff;border-radius:8px;
+          background:#0d1528;z-index:9999;pointer-events:none;transform:scale(1.04);
+          transition:transform .1s;`;
+        const rect=row.getBoundingClientRect();
+        ghost.style.left=rect.left+'px';
+        ghost.style.top=rect.top+'px';
+        document.body.appendChild(ghost);
+        row.style.opacity='.3';
+      },400);
     },{passive:true});
+
     row.addEventListener('touchmove',e=>{
+      if(!touchSrc){
+        clearTimeout(longPressTimer);
+        return;
+      }
+      e.preventDefault();
       const touch=e.touches[0];
+      if(ghost){
+        ghost.style.left=(touch.clientX-ghost.offsetWidth/2)+'px';
+        ghost.style.top=(touch.clientY-ghost.offsetHeight/2)+'px';
+      }
+      ghost.style.display='none';
       const el=document.elementFromPoint(touch.clientX,touch.clientY);
-      const targetRow=el&&el.closest('.log-row');
+      ghost.style.display='';
+      const targetRow=el&&el.closest('.log-row[data-id]');
       if(targetRow&&targetRow!==touchSrc){
-        wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
-        targetRow.classList.add('drag-over');
-        touchTarget=targetRow;
+        if(lastTarget!==targetRow){
+          wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+          targetRow.classList.add('drag-over');
+          if(navigator.vibrate) navigator.vibrate(15);
+          lastTarget=targetRow;
+        }
       }
-    },{passive:true});
+    },{passive:false});
+
     row.addEventListener('touchend',e=>{
-      row.classList.remove('dragging');
+      clearTimeout(longPressTimer);
+      if(!touchSrc){return;}
+      if(ghost){ghost.remove();ghost=null;}
+      touchSrc.style.opacity='';
       wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
-      if(touchTarget&&touchTarget!==touchSrc){
-        reorderTrades(touchSrc.dataset.id, touchTarget.dataset.id, filtered);
+      if(lastTarget&&lastTarget!==touchSrc){
+        reorderTrades(touchSrc.dataset.id, lastTarget.dataset.id, filtered);
       }
-      touchSrc=null;touchTarget=null;
+      touchSrc=null;lastTarget=null;
+    });
+
+    row.addEventListener('touchcancel',e=>{
+      clearTimeout(longPressTimer);
+      if(ghost){ghost.remove();ghost=null;}
+      if(touchSrc) touchSrc.style.opacity='';
+      wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+      touchSrc=null;lastTarget=null;
     });
   });
 }

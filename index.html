@@ -159,7 +159,10 @@ canvas{display:block;width:100%;height:100%;}
 /* 取引ログ（編集対応） */
 .log-header{display:grid;grid-template-columns:72px 1fr auto auto;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:9px;color:var(--dim);}
 .log-wrap{max-height:320px;overflow-y:auto;}
-.log-row{display:grid;grid-template-columns:72px 1fr auto auto;gap:6px;padding:7px 0;border-bottom:1px solid #0d1220;font-size:11px;align-items:center;}
+.log-row{display:grid;grid-template-columns:72px 1fr auto auto;gap:6px;padding:7px 0;border-bottom:1px solid #0d1220;font-size:11px;align-items:center;cursor:grab;user-select:none;transition:background .15s;}
+.log-row:active{cursor:grabbing;}
+.log-row.dragging{opacity:.4;background:#1a2238;}
+.log-row.drag-over{border-top:2px solid var(--gold);}
 .log-row:last-child{border-bottom:none;}
 .log-date{color:var(--dim);font-size:10px;}
 .log-rr{font-size:9px;color:var(--dim);text-align:center;}
@@ -838,8 +841,10 @@ function exportCSV(){
   let filtered=[...trades].filter(t=>t.date>=from&&t.date<=to);
   if(!filtered.length){showToast('⚠️ 出力するデータがありません');return;}
 
+  // tradesの順序を維持して日付ごとにグループ化
   const daily={};
-  filtered.forEach(t=>{
+  // tradesは古→新の順なのでそのまま使う
+  trades.filter(t=>t.date>=from&&t.date<=to).forEach(t=>{
     if(!daily[t.date]) daily[t.date]=[];
     daily[t.date].push(t.pnl);
   });
@@ -895,19 +900,100 @@ function drawLog(){
     : filtered.length+'件';
   document.getElementById('log-count').textContent=
     '('+label+(from||to?' / '+(total>=0?'+':'')+Math.round(total).toLocaleString()+'円':'')+')';
-  document.getElementById('log-wrap').innerHTML=filtered.length
-    ? filtered.map(t=>{
-        const id=t.id;
-        return `<div class="log-row">`
-          +`<div class="log-date">${t.date.slice(5)}</div>`
-          +`<div></div>`
-          +`<div class="log-pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}${t.pnl.toLocaleString()}円</div>`
-          +`<div class="log-actions">`
-          +`<button class="icon-btn" onclick="openEdit('${id}')">✏️</button>`
-          +`<button class="icon-btn del" onclick="deleteTrade('${id}')">🗑</button>`
-          +`</div></div>`;
-      }).join('')
-    : '<div style="text-align:center;color:var(--dim);padding:20px;font-size:11px;">この期間の取引はありません</div>';
+  const wrap=document.getElementById('log-wrap');
+  if(!filtered.length){
+    wrap.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px;font-size:11px;">この期間の取引はありません</div>';
+    return;
+  }
+  wrap.innerHTML=filtered.map(t=>{
+    const id=t.id;
+    return `<div class="log-row" draggable="true" data-id="${id}">`
+      +`<div class="log-date">${t.date.slice(5)}</div>`
+      +`<div></div>`
+      +`<div class="log-pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}${t.pnl.toLocaleString()}円</div>`
+      +`<div class="log-actions">`
+      +`<button class="icon-btn" onclick="openEdit('${id}')">✏️</button>`
+      +`<button class="icon-btn del" onclick="deleteTrade('${id}')">🗑</button>`
+      +`</div></div>`;
+  }).join('');
+  initDragDrop(wrap, filtered);
+}
+
+let _dragSrcId=null;
+function initDragDrop(wrap, filtered){
+  const rows=wrap.querySelectorAll('.log-row');
+  rows.forEach(row=>{
+    // PC drag
+    row.addEventListener('dragstart',e=>{
+      _dragSrcId=row.dataset.id;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    row.addEventListener('dragend',e=>{
+      row.classList.remove('dragging');
+      wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();
+      wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(_dragSrcId===row.dataset.id)return;
+      reorderTrades(_dragSrcId, row.dataset.id, filtered);
+    });
+
+    // タッチ操作
+    let touchSrc=null, touchTarget=null;
+    row.addEventListener('touchstart',e=>{
+      touchSrc=row;
+      row.classList.add('dragging');
+    },{passive:true});
+    row.addEventListener('touchmove',e=>{
+      const touch=e.touches[0];
+      const el=document.elementFromPoint(touch.clientX,touch.clientY);
+      const targetRow=el&&el.closest('.log-row');
+      if(targetRow&&targetRow!==touchSrc){
+        wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+        targetRow.classList.add('drag-over');
+        touchTarget=targetRow;
+      }
+    },{passive:true});
+    row.addEventListener('touchend',e=>{
+      row.classList.remove('dragging');
+      wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
+      if(touchTarget&&touchTarget!==touchSrc){
+        reorderTrades(touchSrc.dataset.id, touchTarget.dataset.id, filtered);
+      }
+      touchSrc=null;touchTarget=null;
+    });
+  });
+}
+
+function reorderTrades(srcId, targetId, filtered){
+  const srcT=filtered.find(t=>String(t.id)===String(srcId));
+  const tgtT=filtered.find(t=>String(t.id)===String(targetId));
+  if(!srcT||!tgtT)return;
+
+  // 日付が違う場合は並び替え不可
+  if(srcT.date!==tgtT.date){
+    showToast('⚠️ 同じ日の取引のみ並び替えできます');
+    return;
+  }
+
+  const srcIdx=filtered.findIndex(t=>String(t.id)===String(srcId));
+  const tgtIdx=filtered.findIndex(t=>String(t.id)===String(targetId));
+  const moved=filtered.splice(srcIdx,1)[0];
+  filtered.splice(tgtIdx,0,moved);
+
+  // trades全体に反映（filteredはreverse済みなので戻す）
+  const filteredSet=new Set(filtered.map(t=>String(t.id)));
+  const others=trades.filter(t=>!filteredSet.has(String(t.id)));
+  const reordered=[...filtered].reverse();
+  trades=[...others,...reordered];
+  saveTrades();
+  drawLog();
 }
 
 // ===== 実績 =====

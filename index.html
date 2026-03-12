@@ -411,15 +411,22 @@ async function loadStorage(){
 async function saveTrades(){
   localStorage.setItem('trade_data_v2', JSON.stringify(trades));
   try{
-    if(trades.length>0){
-      // upsert: 存在すれば更新・なければ追加（削除なしで安全）
+    if(trades.length===0){
+      // 全削除: Supabase全件消す
+      await sbFetch('trades?created_at=gte.2000-01-01','DELETE');
+    } else {
+      // upsert
       await sbFetch('trades','POST', trades.map(t=>({id:String(t.id),date:t.date,pnl:t.pnl})));
-    }
-    // 削除されたものをSupabaseからも消す
-    const remote=await sbFetch('trades?select=id');
-    if(remote){
+      // ローカルにないものをSupabaseから削除（1000件ずつ）
+      let remoteAll=[], offset=0, chunk;
+      do{
+        chunk=await sbFetch('trades?select=id&limit=1000&offset='+offset);
+        if(!chunk)break;
+        remoteAll=remoteAll.concat(chunk);
+        offset+=1000;
+      }while(chunk.length===1000);
       const localIds=new Set(trades.map(t=>String(t.id)));
-      const toDelete=remote.filter(r=>!localIds.has(r.id));
+      const toDelete=remoteAll.filter(r=>!localIds.has(r.id));
       for(const r of toDelete){
         await sbFetch('trades?id=eq.'+encodeURIComponent(r.id),'DELETE');
       }

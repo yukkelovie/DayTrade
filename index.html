@@ -22,7 +22,7 @@ body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sa
 #s-rr{-webkit-text-fill-color:#e8b84b !important;}
 #st-unlocked,#st-total,#st-gold,#st-plat{-webkit-text-fill-color:#e8b84b !important;}
 .stat-label{-webkit-text-fill-color:#3a4a6a !important;}
-.sum-val{-webkit-text-fill-color:inherit !important;}
+.sum-val{}
 .sum-label{-webkit-text-fill-color:#3a4a6a !important;}
 .panel-title{-webkit-text-fill-color:#3a4a6a !important;}
 .rank-stats{-webkit-text-fill-color:#3a4a6a !important;}
@@ -44,12 +44,12 @@ body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sa
 .fi label{-webkit-text-fill-color:#3a4a6a !important;}
 .rr-bar-label{-webkit-text-fill-color:#3a4a6a !important;}
 .sec-head{-webkit-text-fill-color:#3a4a6a !important;}
-.sum-val.pos{-webkit-text-fill-color:var(--jade) !important;}
-.sum-val.neg{-webkit-text-fill-color:var(--red) !important;}
-.sum-val.neu{-webkit-text-fill-color:var(--gold) !important;}
+.sum-val.pos{}
+.sum-val.neg{}
+.sum-val.neu{}
 .log-pnl.pos{-webkit-text-fill-color:var(--jade) !important;}
 .log-pnl.neg{-webkit-text-fill-color:var(--red) !important;}
-.stat-val#s-pnl{-webkit-text-fill-color:inherit !important;}
+.stat-val#s-pnl{}
 .header{background:linear-gradient(180deg,#0a0e1a,#05070c);border-bottom:1px solid var(--border);padding:16px 20px 12px;position:sticky;top:0;z-index:100;}
 .header-logo{font-family:'Zen Antique Soft',serif;font-size:20px;color:var(--gold);letter-spacing:.2em;}
 .header-sub{font-size:10px;color:var(--dim);letter-spacing:.1em;margin-top:2px;}
@@ -133,9 +133,22 @@ canvas{display:block;width:100%;height:100%;}
 
 /* サマリー */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.sum-card{background:#0a0e1a;border:1px solid var(--border);border-radius:10px;padding:12px;}
-.sum-label{font-size:9px;color:var(--dim);margin-bottom:4px;}
-.sum-val{font-size:20px;font-weight:900;}
+.period-tab{
+  background:#0d1528;border:1px solid #2a3a5a;border-radius:20px;
+  color:#3a4a6a;-webkit-text-fill-color:#3a4a6a !important;
+  font-size:11px;padding:4px 10px;cursor:pointer;transition:all .2s;
+  font-family:'Zen Kaku Gothic New',sans-serif;
+}
+.period-tab.active{
+  border-color:var(--gold);color:var(--gold);
+  -webkit-text-fill-color:var(--gold) !important;
+  background:linear-gradient(135deg,#1a1200,#2a1e00);
+}
+.sum-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.sum-sub{font-size:9px;color:#3a4a6a;-webkit-text-fill-color:#3a4a6a !important;margin-top:2px;}
+.sum-card{background:#0a0e1a;border:1px solid var(--border);border-radius:12px;padding:16px 14px;}
+.sum-label{font-size:11px;color:#5a6a8a;-webkit-text-fill-color:#5a6a8a !important;margin-bottom:6px;}
+.sum-val{font-size:22px;font-weight:900;}
 .sum-val.pos{color:var(--jade);}
 .sum-val.neg{color:var(--red);}
 .sum-val.neu{color:var(--gold);}
@@ -159,6 +172,10 @@ canvas{display:block;width:100%;height:100%;}
 /* 取引ログ（編集対応） */
 .log-header{display:grid;grid-template-columns:20px 72px 1fr auto;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:9px;color:var(--dim);}
 .log-wrap{max-height:320px;overflow-y:auto;}
+.stat-tab{background:#0d1528;border:1px solid #2a3a5a;border-radius:6px;color:#3a4a6a;
+  -webkit-text-fill-color:#3a4a6a !important;font-size:11px;padding:4px 10px;cursor:pointer;
+  white-space:nowrap;font-family:'Zen Kaku Gothic New',sans-serif;}
+.stat-tab.active{border-color:var(--gold);color:var(--gold);-webkit-text-fill-color:var(--gold) !important;}
 .log-row{display:grid;grid-template-columns:20px 72px 1fr auto;gap:6px;padding:7px 0;border-bottom:1px solid #0d1220;font-size:11px;align-items:center;cursor:grab;user-select:none;transition:background .15s;}
 .log-row:active{cursor:grabbing;}
 .log-row.dragging{opacity:.4;background:#1a2238;}
@@ -245,11 +262,24 @@ canvas{display:block;width:100%;height:100%;}
   <div class="analytics-wrap">
 
     <!-- トップカード -->
-    <div class="stats-bar" style="margin:12px 0 10px;">
-      <div class="stat-card"><div class="stat-val" id="s-pnl">¥0</div><div class="stat-label">累計損益</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-wr">0%</div><div class="stat-label">勝率</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-pf">0.0</div><div class="stat-label">PF</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-rr">0.0</div><div class="stat-label">平均RR</div></div>
+    <div style="margin:12px 0 6px;">
+      <!-- 期間切り替えタブ -->
+      <div id="stat-tabs" style="display:flex;gap:4px;margin-bottom:8px;overflow-x:auto;">
+        <button class="stat-tab active" onclick="switchStatTab('all',this)">全</button>
+        <button class="stat-tab" id="stat-tab-year" onclick="switchStatTab('year',this)">-</button>
+        <button class="stat-tab" id="stat-tab-month" onclick="switchStatTab('month',this)">-</button>
+        <button class="stat-tab" id="stat-tab-day" onclick="switchStatTab('day',this)">-</button>
+      </div>
+      <!-- 統計カード -->
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-val" id="s-pnl">¥0</div><div class="stat-label">累計損益</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-cnt">0<span id="s-cnt-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">トレード数</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-wr">0%<span id="s-wr-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">勝率</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-pf">0.0<span id="s-pf-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">PF</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-rr">0.0<span id="s-rr-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均RR</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-avg-win">0<span id="s-avg-win-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均利益</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-avg-loss">0<span id="s-avg-loss-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均損失</div></div>
+      </div>
     </div>
 
     <!-- CSV読み込み -->
@@ -276,11 +306,27 @@ canvas{display:block;width:100%;height:100%;}
     </div>
 
     <!-- サマリー -->
-    <div class="summary-grid" id="wrap-summary" style="display:none">
-      <div class="sum-card"><div class="sum-label">総トレード数</div><div class="sum-val neu" id="s-total">0回</div></div>
-      <div class="sum-card"><div class="sum-label">勝ち / 負け</div><div class="sum-val neu" id="s-wl">0/0</div></div>
-      <div class="sum-card"><div class="sum-label">平均利益</div><div class="sum-val pos" id="s-avgw">¥0</div></div>
-      <div class="sum-card"><div class="sum-label">平均損失</div><div class="sum-val neg" id="s-avgl">¥0</div></div>
+    <div class="summary-grid" id="wrap-summary" style="display:none!important">
+      <!-- 期間切り替え -->
+      <div style="display:flex;justify-content:center;margin-bottom:12px;">
+        <button id="period-btn" onclick="cyclePeriod()" style="
+          background:linear-gradient(135deg,#0d1528,#1a2440);
+          border:1px solid var(--gold);border-radius:20px;
+          color:var(--gold);-webkit-text-fill-color:var(--gold) !important;
+          font-size:13px;font-weight:700;padding:6px 20px;cursor:pointer;
+          font-family:'Zen Kaku Gothic New',sans-serif;
+          box-shadow:0 0 12px #e8b84b22;letter-spacing:.05em;
+        ">全トレード</button>
+      </div>
+      <div class="sum-grid">
+        <div class="sum-card"><div class="sum-label">トレード数</div><div class="sum-val neu" id="s-total">0回</div><div class="sum-sub" id="s-total-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">勝ち / 負け</div><div class="sum-val neu" id="s-wl">0/0</div><div class="sum-sub" id="s-wl-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">勝率</div><div class="sum-val neu" id="s-wr2">0%</div><div class="sum-sub" id="s-wr2-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均利益</div><div class="sum-val pos" id="s-avgw">¥0</div><div class="sum-sub" id="s-avgw-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均損失</div><div class="sum-val neg" id="s-avgl">¥0</div><div class="sum-sub" id="s-avgl-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">PF</div><div class="sum-val neu" id="s-pf2">0.0</div><div class="sum-sub" id="s-pf2-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均RR</div><div class="sum-val neu" id="s-rr2">0.0</div><div class="sum-sub" id="s-rr2-sub"></div></div>
+      </div>
     </div>
 
 <!-- チャートtooltip -->
@@ -592,18 +638,120 @@ function saveEdit(){
 }
 
 // ===== 統計計算 =====
-function calcStats(){
-  if(!trades.length)return null;
-  const wins=trades.filter(t=>t.pnl>0), losses=trades.filter(t=>t.pnl<0);
-  const totalPnl=trades.reduce((s,t)=>s+t.pnl,0);
-  const winRate=wins.length/trades.length*100;
+function calcStats(arr){
+  const t=arr||trades;
+  if(!t.length)return null;
+  const wins=t.filter(t=>t.pnl>0), losses=t.filter(t=>t.pnl<0);
+  const totalPnl=t.reduce((s,t)=>s+t.pnl,0);
+  const winRate=wins.length/t.length*100;
   const totalWin=wins.reduce((s,t)=>s+t.pnl,0);
   const totalLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
   const pf=totalLoss>0?totalWin/totalLoss:totalWin>0?99:0;
   const avgWin=wins.length?totalWin/wins.length:0;
   const avgLoss=losses.length?totalLoss/losses.length:0;
   const rr=avgLoss>0?avgWin/avgLoss:0;
-  return{totalPnl,winRate,pf,rr,wins,losses,avgWin,avgLoss,total:trades.length};
+  return{totalPnl,winRate,pf,rr,wins,losses,avgWin,avgLoss,total:t.length};
+}
+
+// 今日・今月・今年の文字列
+function getTodayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getMonthStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function getYearStr(){return String(new Date().getFullYear());}
+
+let _statTab='all';
+function switchStatTab(tab, el){
+  _statTab=tab;
+  document.querySelectorAll('.stat-tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  updateStatCards();
+}
+
+function getFilteredByTab(tab){
+  if(tab==='all') return trades;
+  if(tab==='year') return trades.filter(t=>t.date.startsWith(getYearStr()));
+  if(tab==='month') return trades.filter(t=>t.date.startsWith(getMonthStr()));
+  if(tab==='day') return trades.filter(t=>t.date===getTodayStr());
+  return trades;
+}
+
+function fmtSub(arr, tab){
+  // 上位期間の括弧表示
+  const subs=[];
+  if(tab==='day'){
+    const m=calcStats(trades.filter(t=>t.date.startsWith(getMonthStr())));
+    const y=calcStats(trades.filter(t=>t.date.startsWith(getYearStr())));
+    if(m) subs.push(getMonthStr().slice(5).replace('-','')+'月:'+m.total+'回');
+    if(y) subs.push(getYearStr()+':'+y.total+'回');
+  } else if(tab==='month'){
+    const y=calcStats(trades.filter(t=>t.date.startsWith(getYearStr())));
+    if(y) subs.push(getYearStr()+':'+y.total+'回');
+  }
+  return subs.length?'('+subs.join(' / ')+')':'';
+}
+
+function updateStatCards(){
+  const arr=getFilteredByTab(_statTab);
+  const st=calcStats(arr);
+
+  // タブラベル更新
+  document.getElementById('stat-tab-year').textContent=getYearStr()+'年';
+  document.getElementById('stat-tab-month').textContent=parseInt(getMonthStr().slice(5))+'月';
+  document.getElementById('stat-tab-day').textContent=getTodayStr().slice(5).replace('-','/');
+
+  if(!st){
+    const pel=document.getElementById('s-pnl');
+    pel.textContent='¥0';pel.style.color='var(--dim)';pel.style.webkitTextFillColor='#3a4a6a';
+    ['s-cnt','s-wr','s-pf','s-rr','s-avg-win','s-avg-loss'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.childNodes[0].textContent='0';
+    });
+    return;
+  }
+
+  const sub=fmtSub(arr,_statTab);
+  const cntSub=_statTab!=='all'?sub:'';
+
+  // 累計損益
+  const pel=document.getElementById('s-pnl');
+  pel.textContent=(st.totalPnl>=0?'+':'')+Math.round(st.totalPnl).toLocaleString()+'円';
+  pel.style.color=st.totalPnl>=0?'var(--jade)':'var(--red)';
+  pel.style.webkitTextFillColor=st.totalPnl>=0?'#2dcc8a':'#ff4444';
+
+  // トレード数
+  setStatCard('s-cnt', st.total+'回', cntSub);
+
+  // 勝率（勝ち/負け）
+  const wrSub='勝:'+st.wins.length+' 負:'+st.losses.length;
+  setStatCard('s-wr', st.winRate.toFixed(1)+'%', wrSub);
+
+  // PF
+  setStatCard('s-pf', st.pf>=99?'∞':st.pf.toFixed(2), '');
+
+  // 平均RR
+  setStatCard('s-rr', st.rr.toFixed(2), '');
+
+  // 平均利益
+  const wCol='#2dcc8a';
+  setStatCard('s-avg-win', '+'+(Math.round(st.avgWin)).toLocaleString()+'円', '', wCol);
+
+  // 平均損失
+  const lCol='#ff4444';
+  setStatCard('s-avg-loss', '-'+(Math.round(st.avgLoss)).toLocaleString()+'円', '', lCol);
+}
+
+function setStatCard(id, val, sub, color){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.childNodes[0].textContent=val;
+  if(color){el.style.color=color;el.style.webkitTextFillColor=color;}
+  const subEl=document.getElementById(id+'-sub');
+  if(subEl) subEl.textContent=sub||'';
 }
 
 function getRank(pnl){
@@ -613,17 +761,10 @@ function getRank(pnl){
 // ===== 描画 =====
 function renderAnalytics(){
   const st=calcStats();
-  if(st){
-    const v=st.totalPnl,pel=document.getElementById('s-pnl');
-    pel.textContent=(v>=0?'+':'')+Math.round(v).toLocaleString()+'円';
-    pel.style.color=v>=0?'var(--jade)':'var(--red)';
-    pel.style.webkitTextFillColor=v>=0?'#2dcc8a':'#ff4444';
-    document.getElementById('s-wr').textContent=st.winRate.toFixed(1)+'%';
-    document.getElementById('s-pf').textContent=st.pf>=99?'∞':st.pf.toFixed(2);
-    document.getElementById('s-rr').textContent=st.rr.toFixed(2);
-  }
+  updateStatCards();
+  if(st){ renderSummary(); }
   const show=!!st;
-  ['wrap-summary','wrap-equity','wrap-monthly','wrap-rr','wrap-rank','wrap-log'].forEach(id=>{
+  ['wrap-equity','wrap-monthly','wrap-rr','wrap-rank','wrap-log'].forEach(id=>{
     document.getElementById(id).style.display=show?'':'none';
   });
   if(!show){
@@ -634,6 +775,7 @@ function renderAnalytics(){
     document.getElementById('s-wr').textContent='0%';
     document.getElementById('s-pf').textContent='0.0';
     document.getElementById('s-rr').textContent='0.0';
+    renderSummary();
     return;
   }
   document.getElementById('s-total').textContent=st.total+'回';
@@ -650,6 +792,155 @@ function renderAnalytics(){
 }
 
 // チャートtooltip共通
+// ===== 期間タブ =====
+let _periodTab='all';
+
+const _periodCycle=['all','year','month','day'];
+
+function cyclePeriod(){
+  const idx=_periodCycle.indexOf(_periodTab);
+  _periodTab=_periodCycle[(idx+1)%_periodCycle.length];
+  renderSummary();
+}
+
+function calcStatsFor(tradeList){
+  if(!tradeList.length)return null;
+  const wins=tradeList.filter(t=>t.pnl>0);
+  const losses=tradeList.filter(t=>t.pnl<0);
+  const totalPnl=tradeList.reduce((s,t)=>s+t.pnl,0);
+  const winRate=wins.length/tradeList.length*100;
+  const avgWin=wins.length?wins.reduce((s,t)=>s+t.pnl,0)/wins.length:0;
+  const avgLoss=losses.length?Math.abs(losses.reduce((s,t)=>s+t.pnl,0)/losses.length):0;
+  const grossWin=wins.reduce((s,t)=>s+t.pnl,0);
+  const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const pf=grossLoss>0?grossWin/grossLoss:grossWin>0?99:0;
+  const rr=avgLoss>0?avgWin/avgLoss:0;
+  return {count:tradeList.length,wins:wins.length,losses:losses.length,
+    totalPnl,winRate,avgWin,avgLoss,pf,rr};
+}
+
+function getTradesFor(tab){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,'0');
+  const d=String(now.getDate()).padStart(2,'0');
+  const today=y+'-'+m+'-'+d;
+  const thisMonth=y+'-'+m;
+  const thisYear=String(y);
+  if(tab==='all') return trades;
+  if(tab==='year') return trades.filter(t=>t.date.startsWith(thisYear));
+  if(tab==='month') return trades.filter(t=>t.date.startsWith(thisMonth));
+  if(tab==='day') return trades.filter(t=>t.date===today);
+  return trades;
+}
+
+function getPrevTab(tab){
+  if(tab==='day') return 'prevDay';
+  if(tab==='month') return 'prevMonth';
+  if(tab==='year') return 'prevYear';
+  return null;
+}
+
+function getTradesForPrev(tab){
+  const now=new Date();
+  if(tab==='prevDay'){
+    const d=new Date(now); d.setDate(d.getDate()-1);
+    return trades.filter(t=>t.date===toDateStr(d));
+  }
+  if(tab==='prevMonth'){
+    const d=new Date(now); d.setMonth(d.getMonth()-1);
+    const ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    return trades.filter(t=>t.date.startsWith(ym));
+  }
+  if(tab==='prevYear'){
+    const y=String(now.getFullYear()-1);
+    return trades.filter(t=>t.date.startsWith(y));
+  }
+  return [];
+}
+
+function getPrevLabel(tab){
+  const now=new Date();
+  if(tab==='day'){
+    const d=new Date(now); d.setDate(d.getDate()-1);
+    return (d.getMonth()+1)+'/'+(d.getDate());
+  }
+  if(tab==='month'){
+    const d=new Date(now); d.setMonth(d.getMonth()-1);
+    return (d.getMonth()+1)+'月';
+  }
+  if(tab==='year') return (now.getFullYear()-1)+'年';
+  return null;
+}
+
+function getParentTab(tab){
+  if(tab==='day') return 'month';
+  if(tab==='month') return 'year';
+  if(tab==='year') return 'all';
+  return null;
+}
+
+function getTabLabel(tab){
+  const now=new Date();
+  if(tab==='all') return '全';
+  if(tab==='year') return now.getFullYear()+'年';
+  if(tab==='month') return (now.getMonth()+1)+'月';
+  if(tab==='day') return (now.getMonth()+1)+'/'+(now.getDate());
+  return '';
+}
+
+function renderSummary(){
+  const now=new Date();
+  // ボタンテキスト更新
+  const btnLabels={all:'全トレード',year:now.getFullYear()+'年',month:(now.getMonth()+1)+'月',day:(now.getMonth()+1)+'/'+(now.getDate())};
+  const btn=document.getElementById('period-btn');
+  if(btn) btn.textContent=btnLabels[_periodTab]||'全トレード';
+
+  const cur=calcStatsFor(getTradesFor(_periodTab));
+  const prevLabel=_periodTab!=='all'?getPrevLabel(_periodTab):null;
+  const par=prevLabel?calcStatsFor(getTradesForPrev(_periodTab)):null;
+  const parLabel=prevLabel||'';
+
+  function subTxt(val,parVal,fmt){
+    if(!par||parVal===undefined||parVal===null)return '';
+    return parLabel+':'+fmt(parVal);
+  }
+
+  if(!cur){
+    ['s-total','s-wl','s-wr2','s-avgw','s-avgl','s-pf2','s-rr2'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.textContent='—';el.style.webkitTextFillColor='#3a4a6a';}
+    });
+    ['s-total-sub','s-wl-sub','s-wr2-sub','s-avgw-sub','s-avgl-sub','s-pf2-sub','s-rr2-sub'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.textContent='';
+    });
+    return;
+  }
+
+  function setCard(id,val,color,subId,subVal){
+    const el=document.getElementById(id);
+    if(el){el.textContent=val;el.style.webkitTextFillColor=color||'#e8d8b0';}
+    const sub=document.getElementById(subId);
+    if(sub)sub.textContent=subVal||'';
+  }
+
+  const jade='#2dcc8a',red='#ff4444',neu='#e8d8b0';
+  // トップカードの累計損益の色も更新
+  const pnlEl=document.getElementById('s-pnl');
+  if(pnlEl){
+    const pnlColor=cur.totalPnl>0?jade:cur.totalPnl<0?red:neu;
+    pnlEl.style.color=pnlColor;
+    pnlEl.style.webkitTextFillColor=pnlColor;
+  }
+  setCard('s-total',cur.count+'回',neu,'s-total-sub',par?'('+parLabel+':'+par.count+'回)':'');
+  setCard('s-wl',cur.wins+'/'+cur.losses,neu,'s-wl-sub',par?'('+parLabel+':'+par.wins+'/'+par.losses+')':'');
+  setCard('s-wr2',cur.winRate.toFixed(1)+'%',cur.winRate>=50?jade:red,'s-wr2-sub',par?'('+parLabel+':'+par.winRate.toFixed(1)+'%)':'');
+  setCard('s-avgw','+'+(Math.round(cur.avgWin)).toLocaleString()+'円',jade,'s-avgw-sub',par?'('+parLabel+':+'+(Math.round(par.avgWin)).toLocaleString()+'円)':'');
+  setCard('s-avgl','-'+(Math.round(cur.avgLoss)).toLocaleString()+'円',red,'s-avgl-sub',par?'('+parLabel+':-'+(Math.round(par.avgLoss)).toLocaleString()+'円)':'');
+  setCard('s-pf2',cur.pf>=99?'∞':cur.pf.toFixed(2),cur.pf>=1?jade:red,'s-pf2-sub',par?'('+parLabel+':'+(par.pf>=99?'∞':par.pf.toFixed(2))+')':'');
+  setCard('s-rr2',cur.rr.toFixed(2),cur.rr>=1?jade:red,'s-rr2-sub',par?'('+parLabel+':'+par.rr.toFixed(2)+')':'');
+}
+
 function showChartTip(el, clientX, clientY, html){
   const tip=document.getElementById('chart-tooltip');
   tip.innerHTML=html;tip.style.display='block';

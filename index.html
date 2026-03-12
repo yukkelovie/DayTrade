@@ -15,11 +15,11 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;min-height:100vh;padding-bottom:80px;-webkit-text-fill-color:var(--text);}
 /* Netlify/Safari対策: 主要テキストを強制指定 */
-.stat-val{-webkit-text-fill-color:#e8b84b !important;}
-#s-pnl{-webkit-text-fill-color:#e8b84b !important;}
-#s-wr{-webkit-text-fill-color:#e8b84b !important;}
-#s-pf{-webkit-text-fill-color:#e8b84b !important;}
-#s-rr{-webkit-text-fill-color:#e8b84b !important;}
+
+
+
+
+
 #st-unlocked,#st-total,#st-gold,#st-plat{-webkit-text-fill-color:#e8b84b !important;}
 .stat-label{-webkit-text-fill-color:#3a4a6a !important;}
 .sum-val{}
@@ -319,13 +319,13 @@ canvas{display:block;width:100%;height:100%;}
         ">全トレード</button>
       </div>
       <div class="sum-grid">
-        <div class="sum-card"><div class="sum-label">トレード数</div><div class="sum-val neu" id="s-total">0回</div><div class="sum-sub" id="s-total-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">勝ち / 負け</div><div class="sum-val neu" id="s-wl">0/0</div><div class="sum-sub" id="s-wl-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">勝率</div><div class="sum-val neu" id="s-wr2">0%</div><div class="sum-sub" id="s-wr2-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">平均利益</div><div class="sum-val pos" id="s-avgw">¥0</div><div class="sum-sub" id="s-avgw-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">平均損失</div><div class="sum-val neg" id="s-avgl">¥0</div><div class="sum-sub" id="s-avgl-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">PF</div><div class="sum-val neu" id="s-pf2">0.0</div><div class="sum-sub" id="s-pf2-sub"></div></div>
-        <div class="sum-card"><div class="sum-label">平均RR</div><div class="sum-val neu" id="s-rr2">0.0</div><div class="sum-sub" id="s-rr2-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">トレード数</div><div class="sum-val" id="s-total">0回</div><div class="sum-sub" id="s-total-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">勝ち / 負け</div><div class="sum-val" id="s-wl">0/0</div><div class="sum-sub" id="s-wl-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">勝率</div><div class="sum-val" id="s-wr2">0%</div><div class="sum-sub" id="s-wr2-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均利益</div><div class="sum-val" id="s-avgw">¥0</div><div class="sum-sub" id="s-avgw-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均損失</div><div class="sum-val" id="s-avgl">¥0</div><div class="sum-sub" id="s-avgl-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">PF</div><div class="sum-val" id="s-pf2">0.0</div><div class="sum-sub" id="s-pf2-sub"></div></div>
+        <div class="sum-card"><div class="sum-label">平均RR</div><div class="sum-val" id="s-rr2">0.0</div><div class="sum-sub" id="s-rr2-sub"></div></div>
       </div>
     </div>
 
@@ -780,8 +780,47 @@ function renderAnalytics(){
   }
   document.getElementById('s-total').textContent=st.total+'回';
   document.getElementById('s-wl').textContent=st.wins.length+' / '+st.losses.length;
-  document.getElementById('s-avgw').textContent='+'+Math.round(st.avgWin).toLocaleString()+'円';
-  document.getElementById('s-avgl').textContent='-'+Math.round(st.avgLoss).toLocaleString()+'円';
+
+  // 平均利益（緑）
+  const avgwEl=document.getElementById('s-avgw');
+  avgwEl.textContent='+'+Math.round(st.avgWin).toLocaleString()+'円';
+  avgwEl.style.color='#2dcc8a';avgwEl.style.webkitTextFillColor='#2dcc8a';
+
+  // 平均損失（赤）
+  const avglEl=document.getElementById('s-avgl');
+  avglEl.textContent='-'+Math.round(st.avgLoss).toLocaleString()+'円';
+  avglEl.style.color='#ff4444';avglEl.style.webkitTextFillColor='#ff4444';
+
+  // 勝率（50以上:緑 未満:赤）
+  const wrColor=st.winRate>=50?'#2dcc8a':'#ff4444';
+  ['s-wr','s-wr2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.color=wrColor;el.style.webkitTextFillColor=wrColor;}
+  });
+
+  // PF（1.5以上:緑 1未満:赤 それ以外:グレー）
+  const pfColor=st.pf>=1.5?'#2dcc8a':st.pf<1?'#ff4444':'#8a9ab0';
+  ['s-pf','s-pf2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.color=pfColor;el.style.webkitTextFillColor=pfColor;}
+  });
+
+  // RR（2以上:緑 1未満:赤 それ以外:グレー）
+  const rrColor=st.rr>=2?'#2dcc8a':st.rr<1?'#ff4444':'#8a9ab0';
+  ['s-rr','s-rr2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.color=rrColor;el.style.webkitTextFillColor=rrColor;}
+  });
+
+  // 平均利益・損失も同様
+  ['s-avg-win','s-avgw'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.color='#2dcc8a';el.style.webkitTextFillColor='#2dcc8a';}
+  });
+  ['s-avg-loss','s-avgl'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.color='#ff4444';el.style.webkitTextFillColor='#ff4444';}
+  });
   drawEquity();drawMonthly();drawRR(st);drawRank();
   // ログのデフォルト: 最後に取り込んだ日付
   if(trades.length){
@@ -934,11 +973,12 @@ function renderSummary(){
   }
   setCard('s-total',cur.count+'回',neu,'s-total-sub',par?'('+parLabel+':'+par.count+'回)':'');
   setCard('s-wl',cur.wins+'/'+cur.losses,neu,'s-wl-sub',par?'('+parLabel+':'+par.wins+'/'+par.losses+')':'');
+  const grey='#8a9ab0';
   setCard('s-wr2',cur.winRate.toFixed(1)+'%',cur.winRate>=50?jade:red,'s-wr2-sub',par?'('+parLabel+':'+par.winRate.toFixed(1)+'%)':'');
   setCard('s-avgw','+'+(Math.round(cur.avgWin)).toLocaleString()+'円',jade,'s-avgw-sub',par?'('+parLabel+':+'+(Math.round(par.avgWin)).toLocaleString()+'円)':'');
   setCard('s-avgl','-'+(Math.round(cur.avgLoss)).toLocaleString()+'円',red,'s-avgl-sub',par?'('+parLabel+':-'+(Math.round(par.avgLoss)).toLocaleString()+'円)':'');
-  setCard('s-pf2',cur.pf>=99?'∞':cur.pf.toFixed(2),cur.pf>=1?jade:red,'s-pf2-sub',par?'('+parLabel+':'+(par.pf>=99?'∞':par.pf.toFixed(2))+')':'');
-  setCard('s-rr2',cur.rr.toFixed(2),cur.rr>=1?jade:red,'s-rr2-sub',par?'('+parLabel+':'+par.rr.toFixed(2)+')':'');
+  setCard('s-pf2',cur.pf>=99?'∞':cur.pf.toFixed(2),cur.pf>=1.5?jade:cur.pf<1?red:grey,'s-pf2-sub',par?'('+parLabel+':'+(par.pf>=99?'∞':par.pf.toFixed(2))+')':'');
+  setCard('s-rr2',cur.rr.toFixed(2),cur.rr>=2?jade:cur.rr<1?red:grey,'s-rr2-sub',par?'('+parLabel+':'+par.rr.toFixed(2)+')':'');
 }
 
 function showChartTip(el, clientX, clientY, html){

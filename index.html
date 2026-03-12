@@ -832,31 +832,35 @@ function drawRank(){
 function exportCSV(){
   const from=getDateSel('log-from');
   const to=getDateSel('log-to');
+  if(!from||!to){showToast('⚠️ 期間を指定してください');return;}
 
   // 期間内の取引を日付でグループ化
-  let filtered=[...trades];
-  if(from) filtered=filtered.filter(t=>t.date>=from);
-  if(to)   filtered=filtered.filter(t=>t.date<=to);
+  let filtered=[...trades].filter(t=>t.date>=from&&t.date<=to);
   if(!filtered.length){showToast('⚠️ 出力するデータがありません');return;}
 
-  // 日付一覧（期間内の全日付）
   const daily={};
   filtered.forEach(t=>{
     if(!daily[t.date]) daily[t.date]=[];
     daily[t.date].push(t.pnl);
   });
-  const dates=Object.keys(daily).sort();
+
+  // 期間の全日付を生成（空列含む）
+  const cols=[];
+  let cur=from;
+  while(cur<=to){
+    cols.push(cur);
+    cur=addDays(cur,1);
+  }
 
   // 最大取引数
-  const maxRows=Math.max(...dates.map(d=>daily[d].length));
+  const maxRows=Math.max(...cols.map(d=>daily[d]?daily[d].length:0),1);
 
-  // CSV組み立て（1行目=日付、2行目以降=損益）
-  const header=dates.map(d=>d.replace(/-/g,'/')).join(',');
+  // CSV組み立て（日付行なし・列=1日・空列=取引なし）
   const rows=[];
   for(let i=0;i<maxRows;i++){
-    rows.push(dates.map(d=>daily[d][i]!==undefined?daily[d][i]:'').join(','));
+    rows.push(cols.map(d=>daily[d]&&daily[d][i]!==undefined?daily[d][i]:'').join(','));
   }
-  const csv=[header,...rows].join(String.fromCharCode(10));
+  const csv=rows.join(String.fromCharCode(10));
 
   // ダウンロード（データURI方式）
   const encoded=encodeURIComponent('﻿'+csv);

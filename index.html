@@ -260,8 +260,8 @@ padding:8px;outline:none;
 <div id="tab-analytics">
   <div class="analytics-wrap">
 
-```
 <!-- トップカード -->
+
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
   <div style="display:flex;justify-content:center;margin-bottom:8px;">
@@ -286,15 +286,8 @@ padding:8px;outline:none;
   </div>
 </div>
 
-<!-- 連続記録 -->
-<div id="wrap-streak" style="display:none;margin:8px 12px 0;">
-  <div style="background:#0a1a10;border:1px solid #2dcc8a44;border-radius:12px;padding:12px 14px;">
-    <div style="font-size:10px;font-weight:700;color:#2dcc8a;letter-spacing:.12em;margin-bottom:8px;-webkit-text-fill-color:#2dcc8a !important;">🔥 連続更新中</div>
-    <div id="streak-items" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-  </div>
-</div>
-
 <!-- CSV読み込み -->
+
 <div class="panel">
   <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
   <div class="import-row">
@@ -308,6 +301,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 手入力 -->
+
 <div class="panel">
   <div class="panel-title">✏️ 手入力</div>
   <div class="import-row">
@@ -318,6 +312,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- サマリー -->
+
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <!-- 期間切り替え -->
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
@@ -340,38 +335,41 @@ padding:8px;outline:none;
     <div class="sum-card"><div class="sum-label">平均RR</div><div class="sum-val" id="s-rr2">0.0</div><div class="sum-sub" id="s-rr2-sub"></div></div>
   </div>
 </div>
-```
 
 <!-- チャートtooltip -->
 
 <div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
 
-```
 <!-- 累計グラフ -->
+
 <div class="chart-wrap" id="wrap-equity" style="display:none">
   <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
 <!-- 月別グラフ -->
+
 <div class="chart-wrap" id="wrap-monthly" style="display:none">
   <div class="chart-title">📅 月別損益</div>
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- RR分布 -->
+
 <div class="panel" id="wrap-rr" style="display:none">
   <div class="panel-title">⚖️ RR分布</div>
   <div id="rr-dist"></div>
 </div>
 
 <!-- ランク別 -->
+
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
 <!-- 取引ログ -->
+
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
@@ -394,7 +392,6 @@ padding:8px;outline:none;
   </div>
   <div class="log-wrap" id="log-wrap"></div>
 </div>
-```
 
   </div>
 </div>
@@ -890,7 +887,7 @@ function renderAnalytics(){
     document.getElementById('s-wr').textContent='0%';
     document.getElementById('s-pf').textContent='0.0';
     document.getElementById('s-rr').textContent='0.0';
-    renderSummary();renderStreak();
+    renderSummary();
     return;
   }
   document.getElementById('s-total').textContent=st.total+'回';
@@ -936,7 +933,7 @@ function renderAnalytics(){
     const el=document.getElementById(id);
     if(el){el.style.color='#ff4444';el.style.webkitTextFillColor='#ff4444';}
   });
-  drawEquity();drawMonthly();drawRR(st);drawRank();renderStreak();
+  drawEquity();drawMonthly();drawRR(st);drawRank();
   // ログのデフォルト: 最後に取り込んだ日付
   if(trades.length){
     const lastDate=trades[trades.length-1].date;
@@ -1877,84 +1874,7 @@ function showToast(msg){
   setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},2200);
 }
 
-// ===== 連続記録計算 =====
-function calcStreaks(){
-  if(!trades.length) return null;
-  const sorted=[...trades].sort((a,b)=>a.date.localeCompare(b.date));
-
-  // 何回連続プラス（最新トレードから遡る）
-  let consec=0;
-  for(let i=sorted.length-1;i>=0;i--){
-    if(sorted[i].pnl>0) consec++;
-    else break;
-  }
-
-  // 日別集計
-  const daily={};
-  sorted.forEach(t=>{daily[t.date]=(daily[t.date]||0)+t.pnl;});
-  const days=Object.keys(daily).sort();
-
-  // 何日連続プラス（最新日から遡る）
-  let consecDays=0;
-  for(let i=days.length-1;i>=0;i--){
-    if(daily[days[i]]>0) consecDays++;
-    else break;
-  }
-
-  // 月別集計
-  const monthly={};
-  sorted.forEach(t=>{const m=t.date.slice(0,7);monthly[m]=(monthly[m]||0)+t.pnl;});
-  const months=Object.keys(monthly).sort();
-
-  let consecMonths=0;
-  for(let i=months.length-1;i>=0;i--){
-    if(monthly[months[i]]>0) consecMonths++;
-    else break;
-  }
-
-  // 年別集計
-  const yearly={};
-  sorted.forEach(t=>{const y=t.date.slice(0,4);yearly[y]=(yearly[y]||0)+t.pnl;});
-  const years=Object.keys(yearly).sort();
-
-  let consecYears=0;
-  for(let i=years.length-1;i>=0;i--){
-    if(yearly[years[i]]>0) consecYears++;
-    else break;
-  }
-
-  return {consec, consecDays, consecMonths, consecYears};
-}
-
-function renderStreak(){
-  const el=document.getElementById('wrap-streak');
-  const items=document.getElementById('streak-items');
-  if(!el||!items) return;
-  const s=calcStreaks();
-  if(!s){el.style.display='none';return;}
-
-  const list=[];
-  if(s.consecYears>=2) list.push({label:s.consecYears+'年連続プラス',icon:'📅'});
-  if(s.consecMonths>=2) list.push({label:s.consecMonths+'ヶ月連続プラス',icon:'🗓️'});
-  if(s.consecDays>=2) list.push({label:s.consecDays+'日連続プラス',icon:'📆'});
-  if(s.consec>=2) list.push({label:s.consec+'回連続プラス',icon:'✅'});
-
-  if(!list.length){el.style.display='none';return;}
-
-  el.style.display='block';
-  items.innerHTML=list.map(item=>`
-    <div style="
-      display:inline-flex;align-items:center;gap:5px;
-      background:#0d2010;border:1px solid #2dcc8a66;
-      border-radius:20px;padding:4px 12px;
-      font-size:12px;font-weight:700;
-      color:#2dcc8a;-webkit-text-fill-color:#2dcc8a !important;
-      box-shadow:0 0 8px #2dcc8a22;
-    ">${item.icon} ${item.label}</div>
-  `).join('');
-}
-
-
+// ===== プルダウン日付ヘルパー =====
 function initDateSel(prefix, fromYear=2024, toYear=2030){
   const yEl=document.getElementById(prefix+'-y');
   const mEl=document.getElementById(prefix+'-m');

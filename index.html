@@ -547,7 +547,7 @@ async function loginWithGoogle(){
   btn.textContent = 'リダイレクト中...';
   const { error } = await _sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://daytrade-reward.yukke-lovie.workers.dev/' }
+    options: { redirectTo: window.location.origin + '/' }
   });
   if(error){
     const errEl = document.getElementById('login-error');

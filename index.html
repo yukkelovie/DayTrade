@@ -535,6 +535,7 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 const KEY_ACH='trade_ach_v3';
 let achState={}, trades=[], editIdx=-1;
 let _currentUser = null; // ログイン中のユーザー
+let _currentSession = null; // 現在のセッション
 
 // ===== 認証 =====
 async function loginWithGoogle(){
@@ -587,8 +588,7 @@ function showMainScreen(user){
 
 // ===== Supabase REST fetchヘルパー（認証トークン付き） =====
 async function sbFetch(path, method='GET', body=null){
-  const session = (await _sb.auth.getSession()).data.session;
-  const token = session ? session.access_token : SUPABASE_KEY;
+  const token = _currentSession ? _currentSession.access_token : SUPABASE_KEY;
   const opts={
     method,
     mode:'cors',
@@ -2130,6 +2130,7 @@ function setDateSel(prefix, dateStr){
   // 認証状態の変化を監視
   _sb.auth.onAuthStateChange(async (event, session) => {
     if(session && session.user){
+      _currentSession = session;
       showMainScreen(session.user);
       showToast('📡 データ読み込み中...');
       await loadStorage();

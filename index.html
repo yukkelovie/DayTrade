@@ -521,7 +521,16 @@ const SUPABASE_URL = 'https://nsljuyyjvmrrrvfdeipp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zbGp1eXlqdm1ycnJ2ZmRlaXBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMDY5MTUsImV4cCI6MjA4ODc4MjkxNX0.58d6sJITHoXrD8JuVnFa7S83BzfZ4pTUvRTam1XoxYY';
 
 // Supabase JS SDKクライアント（認証用）
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    storageKey: 'sb-auth-token',
+    storage: window.localStorage,
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+    lock: (name, acquireTimeout, fn) => fn()
+  }
+});
 
 const KEY_ACH='trade_ach_v3';
 let achState={}, trades=[], editIdx=-1;

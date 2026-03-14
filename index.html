@@ -1,4 +1,4 @@
-　<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="ja">
 <head>
@@ -391,11 +391,79 @@ padding:8px;outline:none;
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
-<!-- RR分布 -->
+<!-- ランク別 -->
 
-<div class="panel" id="wrap-rr" style="display:none">
-  <div class="panel-title">⚖️ RR分布</div>
-  <div id="rr-dist"></div>
+<div class="panel" id="wrap-rank" style="display:none">
+  <div class="panel-title">🏅 ランク別成績</div>
+  <div class="rank-grid" id="rank-grid"></div>
+</div>
+
+<!-- 取引ログ -->
+
+<div class="panel" id="wrap-log" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn btn-sm" style="border-color:#4a8cff;color:#4a8cff;background:linear-gradient(135deg,#00081a,#001028)" onclick="exportCSV()">📥 CSV出力</button>
+      <button id="sort-btn" class="btn btn-sm" style="border-color:#9b6dff;color:#9b6dff;background:linear-gradient(135deg,#0a0018,#14002a)" onclick="toggleSortMode()">並び替え</button>
+      <button class="btn btn-sm" style="border-color:#ff8c44;color:#ff8c44;background:linear-gradient(135deg,#1a0800,#2a1000)" onclick="clearPeriod()">期間削除</button>
+      <button class="btn btn-red btn-sm" onclick="clearAll()">全削除</button>
+    </div>
+  </div>
+  <!-- 期間フィルター -->
+  <div style="display:flex;gap:6px;align-items:flex-end;margin-bottom:10px;flex-wrap:wrap;">
+    <div class="fi" style="flex:1;min-width:110px;"><label>開始日</label><div class="date-sel" id="log-from-wrap"><select class="sel-y" id="log-from-y" onchange="drawLog()"></select><span>/</span><select class="sel-m" id="log-from-m" onchange="drawLog()"></select><span>/</span><select class="sel-d" id="log-from-d" onchange="drawLog()"></select></div></div>
+    <div style="color:var(--dim);font-size:11px;padding-bottom:8px;">〜</div>
+    <div class="fi" style="flex:1;min-width:110px;"><label>終了日</label><div class="date-sel" id="log-to-wrap"><select class="sel-y" id="log-to-y" onchange="drawLog()"></select><span>/</span><select class="sel-m" id="log-to-m" onchange="drawLog()"></select><span>/</span><select class="sel-d" id="log-to-d" onchange="drawLog()"></select></div></div>
+    <button class="btn btn-sm" onclick="resetLogFilter()">リセット</button>
+  </div>
+  <div class="log-header">
+    <div>日付</div><div></div><div style="text-align:right">損益</div><div></div>
+  </div>
+  <div class="log-wrap" id="log-wrap"></div>
+</div>
+
+<!-- サマリー -->
+
+<div class="summary-grid" id="wrap-summary" style="display:none!important">
+  <!-- 期間切り替え -->
+  <div style="display:flex;justify-content:center;margin-bottom:12px;">
+    <button id="period-btn" onclick="cyclePeriod()" style="
+      background:linear-gradient(135deg,#0d1528,#1a2440);
+      border:1px solid var(--gold);border-radius:20px;
+      color:var(--gold);-webkit-text-fill-color:var(--gold) !important;
+      font-size:13px;font-weight:700;padding:6px 20px;cursor:pointer;
+      font-family:'Zen Kaku Gothic New',sans-serif;
+      box-shadow:0 0 12px #e8b84b22;letter-spacing:.05em;
+    ">全トレード</button>
+  </div>
+  <div class="sum-grid">
+    <div class="sum-card"><div class="sum-label">トレード数</div><div class="sum-val" id="s-total">0回</div><div class="sum-sub" id="s-total-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">勝ち / 負け</div><div class="sum-val" id="s-wl">0/0</div><div class="sum-sub" id="s-wl-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">勝率</div><div class="sum-val" id="s-wr2">0%</div><div class="sum-sub" id="s-wr2-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">平均利益</div><div class="sum-val" id="s-avgw">¥0</div><div class="sum-sub" id="s-avgw-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">平均損失</div><div class="sum-val" id="s-avgl">¥0</div><div class="sum-sub" id="s-avgl-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">PF</div><div class="sum-val" id="s-pf2">0.0</div><div class="sum-sub" id="s-pf2-sub"></div></div>
+    <div class="sum-card"><div class="sum-label">平均RR</div><div class="sum-val" id="s-rr2">0.0</div><div class="sum-sub" id="s-rr2-sub"></div></div>
+  </div>
+</div>
+
+<!-- チャートtooltip -->
+
+<div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
+
+<!-- 累計グラフ -->
+
+<div class="chart-wrap" id="wrap-equity" style="display:none">
+  <div class="chart-title">📈 累計損益推移</div>
+  <div class="chart-area"><canvas id="chart-equity"></canvas></div>
+</div>
+
+<!-- 月別グラフ -->
+
+<div class="chart-wrap" id="wrap-monthly" style="display:none">
+  <div class="chart-title">📅 月別損益</div>
+  <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- ランク別 -->
@@ -403,6 +471,20 @@ padding:8px;outline:none;
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
+</div>
+
+<!-- CSV読み込み -->
+
+<div class="panel">
+  <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
+  <div class="import-row">
+    <div class="fi"><label>日付</label><div class="date-sel" id="imp-date-wrap"><select class="sel-y" id="imp-date-y"></select><span>/</span><select class="sel-m" id="imp-date-m"></select><span>/</span><select class="sel-d" id="imp-date-d"></select></div></div>
+    <label class="csv-label">
+      <input type="file" id="csvFile" accept=".csv,.txt" onchange="loadCSV(this)">
+      📄 CSVを選択
+    </label>
+  </div>
+  <div style="font-size:9px;color:var(--dim);margin-top:8px;">※ 列=1日分の取引・空列=土日（自動スキップ）。開始日を指定して読み込んでください</div>
 </div>
 
 <!-- 取引ログ -->
@@ -1009,7 +1091,7 @@ function renderAnalytics(){
     }
   }
   const show=!!st;
-  ['wrap-records','wrap-equity','wrap-monthly','wrap-rr','wrap-rank','wrap-log'].forEach(id=>{
+  ['wrap-records','wrap-equity','wrap-monthly','wrap-rank','wrap-log'].forEach(id=>{
     document.getElementById(id).style.display=show?'':'none';
   });
   if(!show){
@@ -1066,7 +1148,7 @@ function renderAnalytics(){
     const el=document.getElementById(id);
     if(el){el.style.color='#ff4444';el.style.webkitTextFillColor='#ff4444';}
   });
-  drawEquity();drawMonthly();drawRR(st);drawRank();renderStreak();
+  drawEquity();drawMonthly();drawRank();renderStreak();
   // ログのデフォルト: 最後に取り込んだ日付
   if(trades.length){
     const lastDate=trades[trades.length-1].date;

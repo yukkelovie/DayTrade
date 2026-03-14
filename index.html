@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="ja">　
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -242,14 +242,12 @@ padding:8px;outline:none;
 </style>
 
 <!-- Supabase JS SDK -->
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
 
 <!-- ログイン画面 -->
-
 <div id="login-screen" style="
   display:none;position:fixed;inset:0;z-index:99999;
   background:var(--bg);
@@ -281,7 +279,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- ユーザー情報バー（ログイン後に表示） -->
-
 <div id="user-bar" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;justify-content:space-between;">
   <div style="display:flex;align-items:center;gap:8px;">
     <img id="user-avatar" src="" style="width:24px;height:24px;border-radius:50%;display:none;">
@@ -314,7 +311,6 @@ padding:8px;outline:none;
   <div class="analytics-wrap">
 
 <!-- トップカード -->
-
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
   <div style="display:flex;justify-content:center;margin-bottom:8px;">
@@ -340,7 +336,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- 連続記録 -->
-
 <div id="wrap-streak" style="display:none;margin:8px 12px 0;">
   <div style="background:#0a1a10;border:1px solid #2dcc8a44;border-radius:12px;padding:12px 14px;">
     <div style="font-size:10px;font-weight:700;color:#2dcc8a;letter-spacing:.12em;margin-bottom:8px;-webkit-text-fill-color:#2dcc8a !important;">🔥 連続更新中</div>
@@ -349,7 +344,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- CSV読み込み -->
-
 <div class="panel">
   <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
   <div class="import-row">
@@ -363,7 +357,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- 手入力 -->
-
 <div class="panel">
   <div class="panel-title">✏️ 手入力</div>
   <div class="import-row">
@@ -374,7 +367,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- サマリー -->
-
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <!-- 期間切り替え -->
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
@@ -403,35 +395,30 @@ padding:8px;outline:none;
 <div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
 
 <!-- 累計グラフ -->
-
 <div class="chart-wrap" id="wrap-equity" style="display:none">
   <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
 <!-- 月別グラフ -->
-
 <div class="chart-wrap" id="wrap-monthly" style="display:none">
   <div class="chart-title">📅 月別損益</div>
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- RR分布 -->
-
 <div class="panel" id="wrap-rr" style="display:none">
   <div class="panel-title">⚖️ RR分布</div>
   <div id="rr-dist"></div>
 </div>
 
 <!-- ランク別 -->
-
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
 <!-- 取引ログ -->
-
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
@@ -563,7 +550,7 @@ async function logout(){
   _currentUser = null;
   trades = [];
   achState = {};
-  showLoginScreen();
+  window.location.href = window.location.origin + '/';
 }
 
 function showLoginScreen(){

@@ -242,14 +242,12 @@ padding:8px;outline:none;
 </style>
 
 <!-- Supabase JS SDK -->
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
 
 <!-- ログイン画面 -->
-
 <div id="login-screen" style="
   display:none;position:fixed;inset:0;z-index:99999;
   background:var(--bg);
@@ -273,6 +271,12 @@ padding:8px;outline:none;
       Googleでログイン
     </button>
     <div id="login-error" style="color:var(--red);font-size:11px;text-align:center;margin-top:12px;display:none;"></div>
+    <button onclick="useLocally()" style="
+      width:100%;margin-top:12px;background:none;border:1px solid var(--dim);
+      border-radius:12px;padding:12px;cursor:pointer;font-size:12px;
+      color:var(--dim);font-family:inherit;transition:opacity .2s;
+      -webkit-text-fill-color:var(--dim);
+    ">ログインせずに使う（このデバイスのみ）</button>
   </div>
 
   <div style="font-size:10px;color:var(--dim);margin-top:32px;text-align:center;line-height:1.8;">
@@ -281,7 +285,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- ユーザー情報バー（ログイン後に表示） -->
-
 <div id="user-bar" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;justify-content:space-between;">
   <div style="display:flex;align-items:center;gap:8px;">
     <img id="user-avatar" src="" style="width:24px;height:24px;border-radius:50%;display:none;">
@@ -314,7 +317,6 @@ padding:8px;outline:none;
   <div class="analytics-wrap">
 
 <!-- トップカード -->
-
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
   <div style="display:flex;justify-content:center;margin-bottom:8px;">
@@ -340,7 +342,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- 連続記録 -->
-
 <div id="wrap-streak" style="display:none;margin:8px 12px 0;">
   <div style="background:#0a1a10;border:1px solid #2dcc8a44;border-radius:12px;padding:12px 14px;">
     <div style="font-size:10px;font-weight:700;color:#2dcc8a;letter-spacing:.12em;margin-bottom:8px;-webkit-text-fill-color:#2dcc8a !important;">🔥 連続更新中</div>
@@ -349,7 +350,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- サマリー -->
-
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
     <button id="period-btn" onclick="cyclePeriod()" style="
@@ -373,32 +373,27 @@ padding:8px;outline:none;
 </div>
 
 <!-- チャートtooltip -->
-
 <div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
 
 <!-- 累計グラフ -->
-
 <div class="chart-wrap" id="wrap-equity" style="display:none">
   <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
 <!-- 月別グラフ -->
-
 <div class="chart-wrap" id="wrap-monthly" style="display:none">
   <div class="chart-title">📅 月別損益</div>
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- ランク別 -->
-
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
 <!-- CSV読み込み -->
-
 <div class="panel">
   <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
   <div class="import-row">
@@ -412,7 +407,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- 手入力 -->
-
 <div class="panel">
   <div class="panel-title">✏️ 手入力</div>
   <div class="import-row">
@@ -423,7 +417,6 @@ padding:8px;outline:none;
 </div>
 
 <!-- 取引ログ -->
-
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
@@ -438,7 +431,7 @@ padding:8px;outline:none;
     <div class="fi" style="flex:1;min-width:110px;"><label>開始日</label><div class="date-sel" id="log-from-wrap"><select class="sel-y" id="log-from-y" onchange="drawLog()"></select><span>/</span><select class="sel-m" id="log-from-m" onchange="drawLog()"></select><span>/</span><select class="sel-d" id="log-from-d" onchange="drawLog()"></select></div></div>
     <div style="color:var(--dim);font-size:11px;padding-bottom:8px;">〜</div>
     <div class="fi" style="flex:1;min-width:110px;"><label>終了日</label><div class="date-sel" id="log-to-wrap"><select class="sel-y" id="log-to-y" onchange="drawLog()"></select><span>/</span><select class="sel-m" id="log-to-m" onchange="drawLog()"></select><span>/</span><select class="sel-d" id="log-to-d" onchange="drawLog()"></select></div></div>
-    <button class="btn btn-sm" onclick="resetLogFilter()">リセット</button>
+
   </div>
   <div class="log-header">
     <div>日付</div><div></div><div style="text-align:right">損益</div><div></div>
@@ -541,6 +534,24 @@ let _currentUser = null; // ログイン中のユーザー
 let _currentSession = null; // 現在のセッション
 
 // ===== 認証 =====
+function useLocally(){
+  _currentUser = null;
+  _currentSession = null;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('user-bar').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('user-name').textContent = 'ローカルモード（未ログイン）';
+  // ローカルデータを読み込む
+  try{const s=localStorage.getItem('trade_data_v2');if(s)trades=JSON.parse(s);}catch(e){}
+  try{const s=localStorage.getItem('trade_ach_v3_local');if(s)achState=JSON.parse(s);}catch(e){}
+  renderAnalytics();
+  renderAch();
+  const today=new Date();
+  const y=today.getFullYear(),m=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
+  setDateSel('in-date',y+'-'+m+'-'+d);
+  setDateSel('imp-date',y+'-'+m+'-'+d);
+}
+
 async function loginWithGoogle(){
   const btn = document.getElementById('google-login-btn');
   btn.style.opacity = '.6';
@@ -632,6 +643,7 @@ async function loadStorage(){
 async function saveTrades(){
   const uid = _currentUser?.id;
   localStorage.setItem('trade_data_v2', JSON.stringify(trades));
+  if(!uid) return; // ローカルモードはlocalStorageのみ
   try{
     if(trades.length===0){
       await sbFetch('trades?user_id=eq.'+uid,'DELETE');

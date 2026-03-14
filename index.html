@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+　<!DOCTYPE html>
 
 <html lang="ja">
 <head>
@@ -242,12 +242,14 @@ padding:8px;outline:none;
 </style>
 
 <!-- Supabase JS SDK -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
 
 <!-- ログイン画面 -->
+
 <div id="login-screen" style="
   display:none;position:fixed;inset:0;z-index:99999;
   background:var(--bg);
@@ -279,6 +281,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- ユーザー情報バー（ログイン後に表示） -->
+
 <div id="user-bar" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;justify-content:space-between;">
   <div style="display:flex;align-items:center;gap:8px;">
     <img id="user-avatar" src="" style="width:24px;height:24px;border-radius:50%;display:none;">
@@ -311,6 +314,7 @@ padding:8px;outline:none;
   <div class="analytics-wrap">
 
 <!-- トップカード -->
+
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
   <div style="display:flex;justify-content:center;margin-bottom:8px;">
@@ -336,6 +340,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 連続記録 -->
+
 <div id="wrap-streak" style="display:none;margin:8px 12px 0;">
   <div style="background:#0a1a10;border:1px solid #2dcc8a44;border-radius:12px;padding:12px 14px;">
     <div style="font-size:10px;font-weight:700;color:#2dcc8a;letter-spacing:.12em;margin-bottom:8px;-webkit-text-fill-color:#2dcc8a !important;">🔥 連続更新中</div>
@@ -343,30 +348,8 @@ padding:8px;outline:none;
   </div>
 </div>
 
-<!-- CSV読み込み -->
-<div class="panel">
-  <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
-  <div class="import-row">
-    <div class="fi"><label>日付</label><div class="date-sel" id="imp-date-wrap"><select class="sel-y" id="imp-date-y"></select><span>/</span><select class="sel-m" id="imp-date-m"></select><span>/</span><select class="sel-d" id="imp-date-d"></select></div></div>
-    <label class="csv-label">
-      <input type="file" id="csvFile" accept=".csv,.txt" onchange="loadCSV(this)">
-      📄 CSVを選択
-    </label>
-  </div>
-  <div style="font-size:9px;color:var(--dim);margin-top:8px;">※ 列=1日分の取引・空列=土日（自動スキップ）。開始日を指定して読み込んでください</div>
-</div>
-
-<!-- 手入力 -->
-<div class="panel">
-  <div class="panel-title">✏️ 手入力</div>
-  <div class="import-row">
-    <div class="fi"><label>日付</label><div class="date-sel" id="in-date-wrap"><select class="sel-y" id="in-date-y"></select><span>/</span><select class="sel-m" id="in-date-m"></select><span>/</span><select class="sel-d" id="in-date-d"></select></div></div>
-    <div class="fi"><label>損益（円）</label><input type="number" id="in-pnl" placeholder="例: 3000 or -1500"></div>
-    <button class="btn" onclick="addTrade()">追加</button>
-  </div>
-</div>
-
 <!-- サマリー -->
+
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <!-- 期間切り替え -->
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
@@ -395,30 +378,35 @@ padding:8px;outline:none;
 <div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
 
 <!-- 累計グラフ -->
+
 <div class="chart-wrap" id="wrap-equity" style="display:none">
   <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
 <!-- 月別グラフ -->
+
 <div class="chart-wrap" id="wrap-monthly" style="display:none">
   <div class="chart-title">📅 月別損益</div>
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- RR分布 -->
+
 <div class="panel" id="wrap-rr" style="display:none">
   <div class="panel-title">⚖️ RR分布</div>
   <div id="rr-dist"></div>
 </div>
 
 <!-- ランク別 -->
+
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
 <!-- 取引ログ -->
+
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
@@ -440,6 +428,31 @@ padding:8px;outline:none;
     <div>日付</div><div></div><div style="text-align:right">損益</div><div></div>
   </div>
   <div class="log-wrap" id="log-wrap"></div>
+</div>
+
+<!-- CSV読み込み -->
+
+<div class="panel">
+  <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
+  <div class="import-row">
+    <div class="fi"><label>日付</label><div class="date-sel" id="imp-date-wrap"><select class="sel-y" id="imp-date-y"></select><span>/</span><select class="sel-m" id="imp-date-m"></select><span>/</span><select class="sel-d" id="imp-date-d"></select></div></div>
+    <label class="csv-label">
+      <input type="file" id="csvFile" accept=".csv,.txt" onchange="loadCSV(this)">
+      📄 CSVを選択
+    </label>
+  </div>
+  <div style="font-size:9px;color:var(--dim);margin-top:8px;">※ 列=1日分の取引・空列=土日（自動スキップ）。開始日を指定して読み込んでください</div>
+</div>
+
+<!-- 手入力 -->
+
+<div class="panel">
+  <div class="panel-title">✏️ 手入力</div>
+  <div class="import-row">
+    <div class="fi"><label>日付</label><div class="date-sel" id="in-date-wrap"><select class="sel-y" id="in-date-y"></select><span>/</span><select class="sel-m" id="in-date-m"></select><span>/</span><select class="sel-d" id="in-date-d"></select></div></div>
+    <div class="fi"><label>損益（円）</label><input type="number" id="in-pnl" placeholder="例: 3000 or -1500"></div>
+    <button class="btn" onclick="addTrade()">追加</button>
+  </div>
 </div>
 
   </div>

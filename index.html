@@ -547,7 +547,7 @@ async function loginWithGoogle(){
   btn.textContent = 'リダイレクト中...';
   const { error } = await _sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/' }
+    options: { redirectTo: 'https://daytrade-reward.yukke-lovie.workers.dev/' }
   });
   if(error){
     const errEl = document.getElementById('login-error');
@@ -2112,6 +2112,17 @@ function setDateSel(prefix, dateStr){
 
 // ===== 初期化（認証対応） =====
 (async()=>{
+  // URLハッシュにアクセストークンがある場合（localhostリダイレクト対策）
+  if(window.location.hash && window.location.hash.includes('access_token')){
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if(access_token && refresh_token){
+      await _sb.auth.setSession({ access_token, refresh_token });
+      window.location.hash = '';
+    }
+  }
+
   // ログイン画面を先に表示
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-content').style.display = 'none';

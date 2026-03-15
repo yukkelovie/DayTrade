@@ -177,9 +177,9 @@ white-space:nowrap;font-family:‘Zen Kaku Gothic New’,sans-serif;}
 .log-row:active{cursor:grabbing;}
 .log-row.dragging{opacity:.4;background:#1a2238;}
 .log-row.drag-over{border-top:3px solid #e8b84b !important;box-shadow:0 -3px 8px #e8b84b66;position:relative;}
-.log-row.drag-over::before{content:"▶ ここに挿入";position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
+.log-row.drag-over::before{content:“▶ ここに挿入”;position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
 .log-row.drag-over-bottom{border-bottom:3px solid #e8b84b !important;box-shadow:0 3px 8px #e8b84b66;position:relative;}
-.log-row.drag-over-bottom::after{content:"▶ ここに挿入(最後)";position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
+.log-row.drag-over-bottom::after{content:“▶ ここに挿入(最後)”;position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
 .log-row.sort-active{cursor:default;}
 .log-row.sort-active *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 #log-wrap{-webkit-user-select:none;user-select:none;}
@@ -245,12 +245,14 @@ padding:8px;outline:none;
 </style>
 
 <!-- Supabase JS SDK -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
 
 <!-- ログイン画面 -->
+
 <div id="login-screen" style="
   display:none;position:fixed;inset:0;z-index:99999;
   background:var(--bg);
@@ -288,6 +290,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- ヘルプモーダル -->
+
 <div id="help-modal" style="display:none;position:fixed;inset:0;z-index:20000;background:#00000099;align-items:center;justify-content:center;" onclick="closeHelp()">
   <div style="background:#0d1528;border:1px solid var(--gold);border-radius:16px;padding:24px 20px;width:280px;" onclick="event.stopPropagation()">
     <div id="help-title" style="font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px;"></div>
@@ -297,6 +300,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- ユーザー情報バー（ログイン後に表示） -->
+
 <div id="user-bar" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;justify-content:space-between;">
   <div style="display:flex;align-items:center;gap:8px;">
     <img id="user-avatar" src="" style="width:24px;height:24px;border-radius:50%;display:none;">
@@ -330,6 +334,7 @@ padding:8px;outline:none;
   <div class="analytics-wrap">
 
 <!-- トップカード -->
+
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
   <div style="display:flex;justify-content:center;margin-bottom:8px;">
@@ -367,6 +372,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 連続記録 -->
+
 <div id="wrap-streak" style="display:none;margin:8px 12px 0;">
   <div style="background:#0a1a10;border:1px solid #2dcc8a44;border-radius:12px;padding:12px 14px;">
     <div style="font-size:10px;font-weight:700;color:#2dcc8a;letter-spacing:.12em;margin-bottom:8px;-webkit-text-fill-color:#2dcc8a !important;">🔥 連続更新中</div>
@@ -375,6 +381,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 改善提案 -->
+
 <div id="wrap-advice" style="display:none;margin:8px 12px 0;">
   <div style="background:#0a0e1a;border:1px solid #e8b84b44;border-radius:12px;padding:12px 14px;">
     <div style="font-size:10px;font-weight:700;color:#e8b84b;letter-spacing:.12em;margin-bottom:6px;-webkit-text-fill-color:#e8b84b !important;">💡 最優先改善事項</div>
@@ -383,6 +390,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- サマリー -->
+
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
     <button id="period-btn" onclick="cyclePeriod()" style="
@@ -406,27 +414,32 @@ padding:8px;outline:none;
 </div>
 
 <!-- チャートtooltip -->
+
 <div id="chart-tooltip" style="position:fixed;background:#0d1528;border:1px solid #e8b84b;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#e8b84b;pointer-events:none;display:none;z-index:9999;white-space:nowrap;box-shadow:0 0 16px #e8b84b44;"></div>
 
 <!-- 累計グラフ -->
+
 <div class="chart-wrap" id="wrap-equity" style="display:none">
   <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
 <!-- 月別グラフ -->
+
 <div class="chart-wrap" id="wrap-monthly" style="display:none">
   <div class="chart-title">📅 月別損益</div>
   <div class="chart-area"><canvas id="chart-monthly"></canvas></div>
 </div>
 
 <!-- ランク別 -->
+
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
 <!-- CSV読み込み -->
+
 <div class="panel">
   <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
   <div class="import-row">
@@ -440,6 +453,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 手入力 -->
+
 <div class="panel">
   <div class="panel-title">✏️ 手入力</div>
   <div class="import-row">
@@ -450,6 +464,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 取引ログ -->
+
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
@@ -526,6 +541,7 @@ padding:8px;outline:none;
 </div>
 
 <!-- 設定タブ -->
+
 <div id="tab-settings" class="hidden">
   <div class="analytics-wrap">
     <div class="panel">
@@ -1068,7 +1084,8 @@ function renderAnalytics(){
     // サブテキスト設定（全トレード以外）
     if(_statTab!=='all'){
       const prevLabel=getPrevLabel(_statTab);
-      const prevTrades=getTradesForPrev(_statTab);
+      const prevTabKey = _statTab==='day'?'prevDay':_statTab==='month'?'prevMonth':_statTab==='year'?'prevYear':null;
+      const prevTrades=prevTabKey?getTradesForPrev(prevTabKey):[];
       const ps=calcStatsFor(prevTrades);
       function setSub(id, val){
         const el=document.getElementById(id+'-sub');

@@ -931,13 +931,22 @@ const _statTabCycle=['all','year','month','day'];
 function cycleStatTab(){
   const idx=_statTabCycle.indexOf(_statTab);
   _statTab=_statTabCycle[(idx+1)%_statTabCycle.length];
+  clearStatSubTexts();
   updateStatCards();
 }
 function switchStatTab(tab, el){
   _statTab=tab;
   document.querySelectorAll('.stat-tab').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
+  clearStatSubTexts();
   updateStatCards();
+}
+
+function clearStatSubTexts(){
+  ['s-pnl','s-cnt','s-wr','s-pf','s-rr','s-avg-win','s-avg-loss'].forEach(id=>{
+    const sub=document.getElementById(id+'-sub');
+    if(sub) sub.textContent='';
+  });
 }
 
 function getFilteredByTab(tab){
@@ -986,6 +995,19 @@ function updateStatCards(){
     ['s-cnt','s-wr','s-pf','s-rr','s-avg-win','s-avg-loss'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.childNodes[0].textContent='0';
+    });
+    // 新しいカードもリセット
+    const resetCards=[
+      {id:'s-win-cnt', val:'0回', color:'#2dcc8a'},
+      {id:'s-loss-cnt',val:'0回', color:'#ff4444'},
+      {id:'s-total-win',val:'0円',color:'#2dcc8a'},
+      {id:'s-total-loss',val:'0円',color:'#ff4444'},
+      {id:'s-best-win', val:'0円', color:'#2dcc8a'},
+      {id:'s-best-loss',val:'0円', color:'#ff4444'},
+    ];
+    resetCards.forEach(({id,val,color})=>{
+      const el=document.getElementById(id);
+      if(el){el.childNodes[0].textContent=val;el.style.color=color;el.style.webkitTextFillColor=color;}
     });
     return;
   }

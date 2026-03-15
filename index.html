@@ -287,6 +287,15 @@ padding:8px;outline:none;
   </div>
 </div>
 
+<!-- ヘルプモーダル -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;z-index:20000;background:#00000099;align-items:center;justify-content:center;" onclick="closeHelp()">
+  <div style="background:#0d1528;border:1px solid var(--gold);border-radius:16px;padding:24px 20px;width:280px;" onclick="event.stopPropagation()">
+    <div id="help-title" style="font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px;"></div>
+    <div id="help-body" style="font-size:12px;color:var(--text);line-height:1.8;"></div>
+    <button onclick="closeHelp()" style="margin-top:16px;width:100%;background:none;border:1px solid var(--dim);border-radius:8px;padding:8px;color:var(--dim);font-family:inherit;cursor:pointer;font-size:12px;">閉じる</button>
+  </div>
+</div>
+
 <!-- ユーザー情報バー（ログイン後に表示） -->
 <div id="user-bar" style="display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:none;align-items:center;justify-content:space-between;">
   <div style="display:flex;align-items:center;gap:8px;">
@@ -312,6 +321,7 @@ padding:8px;outline:none;
 <div class="tabs">
   <div class="tab active" onclick="switchTab('analytics',this)">📊 成績</div>
   <div class="tab" onclick="switchTab('ach',this)">🏆 実績</div>
+  <div class="tab" onclick="switchTab('settings',this)">⚙️ 設定</div>
 </div>
 
 <!-- 成績タブ -->
@@ -335,12 +345,24 @@ padding:8px;outline:none;
   <!-- 統計カード -->
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-val" id="s-pnl">¥0<span id="s-pnl-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">累計損益</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-total-win" style="color:#2dcc8a;-webkit-text-fill-color:#2dcc8a;">0円<span id="s-total-win-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">総利益</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-total-loss" style="color:#ff4444;-webkit-text-fill-color:#ff4444;">0円<span id="s-total-loss-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">総損失</div></div>
     <div class="stat-card"><div class="stat-val" id="s-cnt">0<span id="s-cnt-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">トレード数</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-win-cnt" style="color:#2dcc8a;-webkit-text-fill-color:#2dcc8a;">0<span id="s-win-cnt-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">勝ちトレード</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-loss-cnt" style="color:#ff4444;-webkit-text-fill-color:#ff4444;">0<span id="s-loss-cnt-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">負けトレード</div></div>
     <div class="stat-card"><div class="stat-val" id="s-wr">0%<span id="s-wr-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">勝率</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-pf">0.0<span id="s-pf-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">PF</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-rr">0.0<span id="s-rr-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均RR</div></div>
+    <div class="stat-card" style="position:relative;">
+      <div onclick="showHelp('PF（プロフィットファクター）','総利益 ÷ 総損失で計算します。1.5以上が目標ライン（緑）、1.0〜1.5はグレーゾーン、1.0未満は損失が利益を超えている危険な状態（赤）です。')" style="position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#1a2a4a;border:1px solid #3a4a6a;font-size:9px;color:#8a9ab0;display:flex;align-items:center;justify-content:center;cursor:pointer;">?</div>
+      <div class="stat-val" id="s-pf">0.0<span id="s-pf-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">PF</div>
+    </div>
+    <div class="stat-card" style="position:relative;">
+      <div onclick="showHelp('平均RR（リスクリワード）','平均利益 ÷ 平均損失で計算します。2.0以上が目標ライン（緑）、1.0〜2.0はグレーゾーン、1.0未満は1回の負けを取り返すのに2回以上勝つ必要がある状態（赤）です。')" style="position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#1a2a4a;border:1px solid #3a4a6a;font-size:9px;color:#8a9ab0;display:flex;align-items:center;justify-content:center;cursor:pointer;">?</div>
+      <div class="stat-val" id="s-rr">0.0<span id="s-rr-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均RR</div>
+    </div>
     <div class="stat-card"><div class="stat-val" id="s-avg-win">0<span id="s-avg-win-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均利益</div></div>
     <div class="stat-card"><div class="stat-val" id="s-avg-loss">0<span id="s-avg-loss-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">平均損失</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-best-win" style="color:#2dcc8a;-webkit-text-fill-color:#2dcc8a;">0<span id="s-best-win-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">最高利益</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-best-loss" style="color:#ff4444;-webkit-text-fill-color:#ff4444;">0<span id="s-best-loss-sub" style="font-size:9px;color:#3a4a6a;display:block;margin-top:2px;"></span></div><div class="stat-label">最高損失</div></div>
   </div>
 </div>
 
@@ -512,6 +534,18 @@ padding:8px;outline:none;
   <div id="ach-container"></div>
 </div>
 
+<!-- 設定タブ -->
+<div id="tab-settings" class="hidden">
+  <div class="analytics-wrap">
+    <div class="panel">
+      <div class="panel-title">📊 統計カードの表示設定</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:12px;">表示/非表示の切り替えと並び順の変更ができます</div>
+      <div id="card-settings-list"></div>
+      <button onclick="saveCardSettings()" class="btn btn-jade" style="width:100%;margin-top:12px;">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- 確認モーダル -->
 
 <div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:10001;background:#00000099;align-items:center;justify-content:center;">
@@ -571,6 +605,7 @@ function useLocally(){
   // ローカルデータを読み込む
   try{const s=localStorage.getItem('trade_data_v2');if(s)trades=JSON.parse(s);}catch(e){}
   try{const s=localStorage.getItem('trade_ach_v3_local');if(s)achState=JSON.parse(s);}catch(e){}
+  applyCardSettings();
   renderAnalytics();
   renderAch();
   const today=new Date();
@@ -981,6 +1016,28 @@ function updateStatCards(){
   // 平均損失
   const alSubColor=ps?(ps.avgLoss>0?'#ff4444':'#5a6a8a'):'#5a6a8a';
   setStatCard('s-avg-loss', '-'+(Math.round(st.avgLoss)).toLocaleString()+'円', ps?pl+': -'+(Math.round(ps.avgLoss)).toLocaleString()+'円':'', '#ff4444', alSubColor);
+
+  // 総利益・総損失
+  const totalWin=st.wins.reduce((s,t)=>s+t.pnl,0);
+  const totalLoss=Math.abs(st.losses.reduce((s,t)=>s+t.pnl,0));
+  const twEl=document.getElementById('s-total-win');
+  const tlEl=document.getElementById('s-total-loss');
+  if(twEl){twEl.childNodes[0].textContent='+'+Math.round(totalWin).toLocaleString()+'円';twEl.style.color='#2dcc8a';twEl.style.webkitTextFillColor='#2dcc8a';}
+  if(tlEl){tlEl.childNodes[0].textContent='-'+Math.round(totalLoss).toLocaleString()+'円';tlEl.style.color='#ff4444';tlEl.style.webkitTextFillColor='#ff4444';}
+
+  // 勝ちトレード数・負けトレード数
+  const wcEl=document.getElementById('s-win-cnt');
+  const lcEl=document.getElementById('s-loss-cnt');
+  if(wcEl){wcEl.childNodes[0].textContent=st.wins.length+'回';wcEl.style.color='#2dcc8a';wcEl.style.webkitTextFillColor='#2dcc8a';}
+  if(lcEl){lcEl.childNodes[0].textContent=st.losses.length+'回';lcEl.style.color='#ff4444';lcEl.style.webkitTextFillColor='#ff4444';}
+
+  // 最高利益・最高損失
+  const bestWin=st.wins.length?Math.max(...st.wins.map(t=>t.pnl)):0;
+  const bestLoss=st.losses.length?Math.max(...st.losses.map(t=>Math.abs(t.pnl))):0;
+  const bwEl=document.getElementById('s-best-win');
+  const blEl=document.getElementById('s-best-loss');
+  if(bwEl){bwEl.childNodes[0].textContent='+'+Math.round(bestWin).toLocaleString()+'円';bwEl.style.color='#2dcc8a';bwEl.style.webkitTextFillColor='#2dcc8a';}
+  if(blEl){blEl.childNodes[0].textContent='-'+Math.round(bestLoss).toLocaleString()+'円';blEl.style.color='#ff4444';blEl.style.webkitTextFillColor='#ff4444';}
 }
 
 function setStatCard(id, val, sub, color, subColor){
@@ -1659,16 +1716,18 @@ function exportCSV(){
 let _logReversed=false;
 let _sortFiltered=null;
 let _sortMode=false;
+let _selectedIds=new Set();
 
 function toggleSortMode(){
   _sortMode=!_sortMode;
   const btn=document.getElementById('sort-btn');
   if(_sortMode){
+    _selectedIds=new Set();
     btn.textContent='適用';
     btn.style.borderColor='#2dcc8a';
     btn.style.color='#2dcc8a';
     btn.style.background='linear-gradient(135deg,#001a0e,#002a18)';
-    showToast('並び替えモード: 長押しで移動');
+    showToast('並び替えモード: チェックして複数選択、ドラッグで移動');
   } else {
     // 適用して保存
     if(_sortFiltered){
@@ -1721,8 +1780,10 @@ function drawLog(){
   _sortFiltered=filtered;
   wrap.innerHTML=filtered.map(t=>{
     const id=t.id;
-    return `<div class="log-row${_sortMode?' sort-active':''}" ${_sortMode?'draggable="true"':''} data-id="${id}">`
-      +(_sortMode?`<div style="color:#9b6dff;font-size:14px;cursor:grab;touch-action:none;">⠿</div>`:`<div></div>`)
+    const isSelected=_selectedIds.has(String(id));
+    const rowStyle=isSelected?'background:#1a1040;border-left:3px solid #9b6dff;':'';
+    return `<div class="log-row${_sortMode?' sort-active':''}" ${_sortMode?'draggable="true"':''} data-id="${id}" style="${rowStyle}">`
+      +(_sortMode?`<input type="checkbox" ${isSelected?'checked':''} onclick="toggleSelectRow('${id}',event)" style="width:16px;height:16px;cursor:pointer;accent-color:#9b6dff;flex-shrink:0;">`:`<div></div>`)
       +`<div class="log-date">${t.date.slice(5)}</div>`
       +`<div class="log-pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}${t.pnl.toLocaleString()}円</div>`
       +`<div class="log-actions">`
@@ -1735,6 +1796,112 @@ function drawLog(){
 
 let _dragSrcId=null;
 let _vibrated=false;
+
+// ===== 統計カード設定 =====
+const DEFAULT_CARDS = [
+  {id:'s-pnl',       label:'累計損益',     show:true},
+  {id:'s-total-win', label:'総利益',       show:true},
+  {id:'s-total-loss',label:'総損失',       show:true},
+  {id:'s-cnt',       label:'トレード数',   show:true},
+  {id:'s-win-cnt',   label:'勝ちトレード', show:true},
+  {id:'s-loss-cnt',  label:'負けトレード', show:true},
+  {id:'s-wr',        label:'勝率',         show:true},
+  {id:'s-pf',        label:'PF',           show:true},
+  {id:'s-rr',        label:'平均RR',       show:true},
+  {id:'s-avg-win',   label:'平均利益',     show:true},
+  {id:'s-avg-loss',  label:'平均損失',     show:true},
+  {id:'s-best-win',  label:'最高利益',     show:true},
+  {id:'s-best-loss', label:'最高損失',     show:true},
+];
+let _cardSettings = null;
+
+function loadCardSettings(){
+  if(_cardSettings) return;
+  try{
+    const s=localStorage.getItem('card_settings_v1');
+    if(s) _cardSettings=JSON.parse(s);
+    else _cardSettings=DEFAULT_CARDS.map(c=>({...c}));
+  }catch(e){ _cardSettings=DEFAULT_CARDS.map(c=>({...c})); }
+}
+
+function saveCardSettings(){
+  const list=document.getElementById('card-settings-list');
+  const rows=list.querySelectorAll('[data-card-id]');
+  _cardSettings=Array.from(rows).map(row=>{
+    const id=row.dataset.cardId;
+    const show=row.querySelector('input[type=checkbox]').checked;
+    const label=DEFAULT_CARDS.find(c=>c.id===id)?.label||id;
+    return {id,label,show};
+  });
+  localStorage.setItem('card_settings_v1',JSON.stringify(_cardSettings));
+  applyCardSettings();
+  showToast('✅ 設定を保存しました');
+}
+
+function applyCardSettings(){
+  loadCardSettings();
+  const statsBar=document.querySelector('.stats-bar');
+  if(!statsBar) return;
+  const allCards=[...statsBar.querySelectorAll('.stat-card')];
+  allCards.forEach(c=>c.style.display='none');
+  _cardSettings.forEach(setting=>{
+    const card=allCards.find(c=>c.querySelector('#'+setting.id));
+    if(card){
+      card.style.display=setting.show?'':'none';
+      if(setting.show) statsBar.appendChild(card);
+    }
+  });
+}
+
+function renderCardSettings(){
+  loadCardSettings();
+  const list=document.getElementById('card-settings-list');
+  list.innerHTML=_cardSettings.map(c=>`
+    <div data-card-id="${c.id}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="color:#9b6dff;font-size:16px;cursor:grab;">&#10783;</span>
+      <input type="checkbox" ${c.show?'checked':''} style="width:16px;height:16px;accent-color:#2dcc8a;cursor:pointer;">
+      <span style="font-size:13px;color:var(--text);flex:1;">${c.label}</span>
+    </div>
+  `).join('');
+  initCardDragDrop(list);
+}
+
+function initCardDragDrop(list){
+  let dragSrc=null;
+  const getRows=()=>list.querySelectorAll('[data-card-id]');
+  getRows().forEach(row=>{
+    row.setAttribute('draggable','true');
+    row.addEventListener('dragstart',e=>{dragSrc=row;row.style.opacity='.4';});
+    row.addEventListener('dragend',e=>{row.style.opacity='';getRows().forEach(r=>r.style.borderTop='');});
+    row.addEventListener('dragover',e=>{e.preventDefault();getRows().forEach(r=>r.style.borderTop='');row.style.borderTop='2px solid #e8b84b';});
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(dragSrc===row)return;
+      const allRows=[...getRows()];
+      const si=allRows.indexOf(dragSrc),ti=allRows.indexOf(row);
+      if(si<ti) row.after(dragSrc);
+      else row.before(dragSrc);
+      getRows().forEach(r=>r.style.borderTop='');
+    });
+  });
+}
+
+function showHelp(title, body){
+  document.getElementById('help-title').textContent=title;
+  document.getElementById('help-body').textContent=body;
+  document.getElementById('help-modal').style.display='flex';
+}
+function closeHelp(){
+  document.getElementById('help-modal').style.display='none';
+}
+
+function toggleSelectRow(id, e){
+  e.stopPropagation();
+  const sid=String(id);
+  if(_selectedIds.has(sid)) _selectedIds.delete(sid);
+  else _selectedIds.add(sid);
+  drawLog();
+}
 
 function initDragDrop(wrap, filtered){
   const rows=wrap.querySelectorAll('.log-row');
@@ -1848,28 +2015,40 @@ function initDragDrop(wrap, filtered){
 }
 
 function reorderTrades(srcId, targetId, filtered, insertAfter=false){
-  const srcT=filtered.find(t=>String(t.id)===String(srcId));
   const tgtT=filtered.find(t=>String(t.id)===String(targetId));
-  if(!srcT||!tgtT)return;
+  if(!tgtT)return;
 
-  // 日付が違う場合は並び替え不可
-  if(srcT.date!==tgtT.date){
+  // 移動対象：複数選択があればそれ、なければドラッグしたもの
+  const moveIds=_selectedIds.size>0 ? _selectedIds : new Set([String(srcId)]);
+  const movingItems=filtered.filter(t=>moveIds.has(String(t.id)));
+  if(!movingItems.length)return;
+
+  // 日付チェック（移動するアイテムと挿入先が同じ日か）
+  const allSameDate=movingItems.every(t=>t.date===tgtT.date);
+  if(!allSameDate){
     showToast('⚠️ 同じ日の取引のみ並び替えできます');
     return;
   }
 
-  const srcIdx=filtered.findIndex(t=>String(t.id)===String(srcId));
-  const moved=filtered.splice(srcIdx,1)[0];
-  let tgtIdx=filtered.findIndex(t=>String(t.id)===String(targetId));
-  if(insertAfter) tgtIdx+=1;
-  filtered.splice(tgtIdx,0,moved);
+  // 移動アイテムを除いたリストを作る
+  const remaining=filtered.filter(t=>!moveIds.has(String(t.id)));
+  // 挿入位置を決める
+  let tgtIdx=remaining.findIndex(t=>String(t.id)===String(targetId));
+  if(tgtIdx===-1) tgtIdx=remaining.length;
+  else if(insertAfter) tgtIdx+=1;
+  // 挿入
+  remaining.splice(tgtIdx,0,...movingItems);
+  // filteredを更新
+  filtered.length=0;
+  remaining.forEach(t=>filtered.push(t));
 
   // trades全体に反映（new↓表示時はreverse済みなので戻す）
   const normalOrdered=_logReversed?[...filtered].reverse():filtered;
   const filteredSet=new Set(normalOrdered.map(t=>String(t.id)));
   const others=trades.filter(t=>!filteredSet.has(String(t.id)));
   trades=[...others,...normalOrdered];
-  // 並び替えモード中は完了ボタンで保存するためsaveTradesは呼ばない
+
+  _selectedIds.clear();
   drawLog();
 }
 
@@ -2020,9 +2199,11 @@ function toggleAch(id){
 function switchTab(tab,el){
   document.getElementById('tab-analytics').classList.toggle('hidden',tab!=='analytics');
   document.getElementById('tab-ach').classList.toggle('hidden',tab!=='ach');
+  document.getElementById('tab-settings').classList.toggle('hidden',tab!=='settings');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  if(tab==='ach') renderRecords();;
+  if(tab==='ach') renderRecords();
+  if(tab==='settings') renderCardSettings();
 }
 
 let _confirmCb=null;
@@ -2068,37 +2249,56 @@ function renderAdvice(){
   const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const thisMonth = trades.filter(t=>t.date.startsWith(ym));
   const month = calcStats(thisMonth);
+  const m = (month && month.total >= 5) ? month : null;
+
+  // 色判定ヘルパー（今の色分けと同じ閾値）
+  // PF: 1.5以上=緑 / 1.0〜1.5=グレー / 1.0未満=赤
+  // RR: 2.0以上=緑 / 1.0〜2.0=グレー / 1.0未満=赤
+  // 勝率: 50%以上=緑 / 50%未満=赤
+  function pfStatus(v){ return v>=1.5?'green':v>=1.0?'gray':'red'; }
+  function rrStatus(v){ return v>=2.0?'green':v>=1.0?'gray':'red'; }
+  function wrStatus(v){ return v>=50?'green':'red'; }
 
   let advice = null;
+  let isGood = false;
 
-  // 1. RRが1未満（損小利大になっていない）
-  if(all.rr < 1.0){
-    advice = '⚠️ 平均RRが ' + all.rr.toFixed(2) + ' と1未満です。平均利益（+' + Math.round(all.avgWin).toLocaleString() + '円）が平均損失（-' + Math.round(all.avgLoss).toLocaleString() + '円）を下回っています。利確を伸ばすか損切りを早めましょう。';
+  // 今月データがある場合：全体と比較して悪化していればそれを優先
+  if(m){
+    // PF優先チェック
+    if(m.pf < all.pf - 0.3 || (pfStatus(m.pf) === 'red' && pfStatus(all.pf) !== 'red')){
+      advice = '⚠️ 今月のPF（' + m.pf.toFixed(2) + '）が全体（' + all.pf.toFixed(2) + '）より悪化しています。利益の伸ばし方か損切りの徹底を見直しましょう。';
+    }
+    // RR優先チェック
+    else if(m.rr < all.rr - 0.3 || (rrStatus(m.rr) === 'red' && rrStatus(all.rr) !== 'red')){
+      advice = '⚠️ 今月のRR（' + m.rr.toFixed(2) + '）が全体（' + all.rr.toFixed(2) + '）より悪化しています。利確を早めすぎていないか確認しましょう。';
+    }
+    // 勝率チェック
+    else if(m.winRate < all.winRate - 10 || (wrStatus(m.winRate) === 'red' && wrStatus(all.winRate) !== 'red')){
+      advice = '⚠️ 今月の勝率（' + m.winRate.toFixed(1) + '%）が全体（' + all.winRate.toFixed(1) + '%）より悪化しています。エントリー条件を絞りましょう。';
+    }
   }
-  // 2. 今月のPFが全体より大幅に低い
-  else if(month && month.total >= 5 && month.pf < all.pf * 0.7){
-    advice = '⚠️ 今月のPF（' + month.pf.toFixed(2) + '）が全体PF（' + all.pf.toFixed(2) + '）より大きく下がっています。最近のトレードの質が落ちている可能性があります。';
-  }
-  // 3. 勝率は高いがPFが低い（小さく勝って大きく負けている）
-  else if(all.winRate >= 60 && all.pf < 1.2){
-    advice = '⚠️ 勝率（' + all.winRate.toFixed(1) + '%）は高いですが、PF（' + all.pf.toFixed(2) + '）が低いです。負けトレードの損失が大きすぎる可能性があります。損切りルールを見直しましょう。';
-  }
-  // 4. 今月の勝率が全体より大幅に低い
-  else if(month && month.total >= 5 && month.winRate < all.winRate - 15){
-    advice = '⚠️ 今月の勝率（' + month.winRate.toFixed(1) + '%）が全体（' + all.winRate.toFixed(1) + '%）より' + (all.winRate - month.winRate).toFixed(1) + '%低いです。エントリー精度が落ちていないか確認しましょう。';
-  }
-  // 5. RRは良いが勝率が低い
-  else if(all.rr >= 2.0 && all.winRate < 40){
-    advice = '💡 RR（' + all.rr.toFixed(2) + '）は良好ですが、勝率（' + all.winRate.toFixed(1) + '%）が低いです。エントリー精度を上げることで大きく改善できます。';
-  }
-  // 6. 良好な状態
-  else {
-    advice = '✅ 現在のPF（' + all.pf.toFixed(2) + '）・RR（' + all.rr.toFixed(2) + '）・勝率（' + all.winRate.toFixed(1) + '%）は良好です。このペースを維持しましょう！';
+
+  // 悪化なし or 今月データ不足 → 目標値未達をチェック（PF→RR→勝率の順）
+  if(!advice){
+    if(pfStatus(all.pf) === 'red'){
+      advice = '🔴 PF（' + all.pf.toFixed(2) + '）が1.0未満です。まず損切りを徹底してPF1.0超えを目指しましょう。';
+    } else if(pfStatus(all.pf) === 'gray'){
+      advice = '🟡 PF（' + all.pf.toFixed(2) + '）がグレーゾーンです。PF1.5（緑）を目指して利益をもう少し伸ばしましょう。';
+    } else if(rrStatus(all.rr) === 'red'){
+      advice = '🔴 RR（' + all.rr.toFixed(2) + '）が1.0未満です。平均利益が平均損失を下回っています。利確を伸ばすか損切りを早めましょう。';
+    } else if(rrStatus(all.rr) === 'gray'){
+      advice = '🟡 RR（' + all.rr.toFixed(2) + '）がグレーゾーンです。RR2.0（緑）を目指して利確をもう少し伸ばしましょう。';
+    } else if(wrStatus(all.winRate) === 'red'){
+      advice = '🔴 勝率（' + all.winRate.toFixed(1) + '%）が50%未満です。エントリー精度を上げましょう。';
+    } else {
+      advice = '✅ PF（' + all.pf.toFixed(2) + '）・RR（' + all.rr.toFixed(2) + '）・勝率（' + all.winRate.toFixed(1) + '%）が全て緑です。このペースを維持しましょう！';
+      isGood = true;
+    }
   }
 
   txt.textContent = advice;
-  txt.style.color = advice.startsWith('✅') ? '#2dcc8a' : '#c8d4f0';
-  txt.style.webkitTextFillColor = advice.startsWith('✅') ? '#2dcc8a' : '#c8d4f0';
+  txt.style.color = isGood ? '#2dcc8a' : advice.startsWith('⚠️') ? '#c8d4f0' : '#c8d4f0';
+  txt.style.webkitTextFillColor = isGood ? '#2dcc8a' : '#c8d4f0';
   el.style.display = 'block';
 }
 
@@ -2306,6 +2506,7 @@ function setDateSel(prefix, dateStr){
       showMainScreen(session.user);
       showToast('📡 データ読み込み中...');
       await loadStorage();
+      applyCardSettings();
       renderAnalytics();
       renderAch();
       const today=new Date();

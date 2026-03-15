@@ -1277,7 +1277,8 @@ function renderSummary(){
 
   const cur=calcStatsFor(getTradesFor(_periodTab));
   const prevLabel=_periodTab!=='all'?getPrevLabel(_periodTab):null;
-  const par=prevLabel?calcStatsFor(getTradesForPrev(_periodTab)):null;
+  const prevTabKey2=_periodTab==='day'?'prevDay':_periodTab==='month'?'prevMonth':_periodTab==='year'?'prevYear':null;
+  const par=prevLabel?calcStatsFor(getTradesForPrev(prevTabKey2)):null;
   const parLabel=prevLabel||'';
 
   function subTxt(val,parVal,fmt){

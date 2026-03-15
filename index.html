@@ -176,7 +176,10 @@ white-space:nowrap;font-family:‘Zen Kaku Gothic New’,sans-serif;}
 .log-row{display:grid;grid-template-columns:20px 72px 1fr auto;gap:6px;padding:7px 0;border-bottom:1px solid #0d1220;font-size:11px;align-items:center;cursor:grab;user-select:none;transition:background .15s;}
 .log-row:active{cursor:grabbing;}
 .log-row.dragging{opacity:.4;background:#1a2238;}
-.log-row.drag-over{border-top:2px solid var(–gold);}
+.log-row.drag-over{border-top:3px solid #e8b84b !important;box-shadow:0 -3px 8px #e8b84b66;position:relative;}
+.log-row.drag-over::before{content:"▶ ここに挿入";position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
+.log-row.drag-over-bottom{border-bottom:3px solid #e8b84b !important;box-shadow:0 3px 8px #e8b84b66;position:relative;}
+.log-row.drag-over-bottom::after{content:"▶ ここに挿入(最後)";position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:#e8b84b;color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:100;}
 .log-row.sort-active{cursor:default;}
 .log-row.sort-active *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
 #log-wrap{-webkit-user-select:none;user-select:none;}
@@ -1748,13 +1751,21 @@ function initDragDrop(wrap, filtered){
     });
     row.addEventListener('dragover',e=>{
       e.preventDefault();
-      wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
-      row.classList.add('drag-over');
+      wrap.querySelectorAll('.log-row').forEach(r=>{r.classList.remove('drag-over');r.classList.remove('drag-over-bottom');});
+      const rect=row.getBoundingClientRect();
+      const mid=rect.top+rect.height/2;
+      if(e.clientY>mid){
+        row.classList.add('drag-over-bottom');
+        row.dataset.dropPos='after';
+      } else {
+        row.classList.add('drag-over');
+        row.dataset.dropPos='before';
+      }
     });
     row.addEventListener('drop',e=>{
       e.preventDefault();
       if(_dragSrcId===row.dataset.id)return;
-      reorderTrades(_dragSrcId, row.dataset.id, filtered);
+      reorderTrades(_dragSrcId, row.dataset.id, filtered, row.dataset.dropPos==='after');
     });
   });
 
@@ -1798,8 +1809,16 @@ function initDragDrop(wrap, filtered){
       const targetRow=el&&el.closest('.log-row[data-id]');
       if(targetRow&&targetRow!==touchSrc){
         if(lastTarget!==targetRow){
-          wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
-          targetRow.classList.add('drag-over');
+          wrap.querySelectorAll('.log-row').forEach(r=>{r.classList.remove('drag-over');r.classList.remove('drag-over-bottom');});
+          const rect=targetRow.getBoundingClientRect();
+          const mid=rect.top+rect.height/2;
+          if(touch.clientY>mid){
+            targetRow.classList.add('drag-over-bottom');
+            targetRow.dataset.dropPos='after';
+          } else {
+            targetRow.classList.add('drag-over');
+            targetRow.dataset.dropPos='before';
+          }
           if(navigator.vibrate) navigator.vibrate(15);
           lastTarget=targetRow;
         }
@@ -1813,7 +1832,7 @@ function initDragDrop(wrap, filtered){
       touchSrc.style.opacity='';
       wrap.querySelectorAll('.log-row').forEach(r=>r.classList.remove('drag-over'));
       if(lastTarget&&lastTarget!==touchSrc){
-        reorderTrades(touchSrc.dataset.id, lastTarget.dataset.id, filtered);
+        reorderTrades(touchSrc.dataset.id, lastTarget.dataset.id, filtered, lastTarget.dataset.dropPos==='after');
       }
       touchSrc=null;lastTarget=null;
     });
@@ -1828,7 +1847,7 @@ function initDragDrop(wrap, filtered){
   });
 }
 
-function reorderTrades(srcId, targetId, filtered){
+function reorderTrades(srcId, targetId, filtered, insertAfter=false){
   const srcT=filtered.find(t=>String(t.id)===String(srcId));
   const tgtT=filtered.find(t=>String(t.id)===String(targetId));
   if(!srcT||!tgtT)return;
@@ -1840,14 +1859,16 @@ function reorderTrades(srcId, targetId, filtered){
   }
 
   const srcIdx=filtered.findIndex(t=>String(t.id)===String(srcId));
-  const tgtIdx=filtered.findIndex(t=>String(t.id)===String(targetId));
   const moved=filtered.splice(srcIdx,1)[0];
+  let tgtIdx=filtered.findIndex(t=>String(t.id)===String(targetId));
+  if(insertAfter) tgtIdx+=1;
   filtered.splice(tgtIdx,0,moved);
 
-  // trades全体に反映（filteredはreverse済みなので戻す）
-  const filteredSet=new Set(filtered.map(t=>String(t.id)));
+  // trades全体に反映（new↓表示時はreverse済みなので戻す）
+  const normalOrdered=_logReversed?[...filtered].reverse():filtered;
+  const filteredSet=new Set(normalOrdered.map(t=>String(t.id)));
   const others=trades.filter(t=>!filteredSet.has(String(t.id)));
-  trades=[...others,...filtered];
+  trades=[...others,...normalOrdered];
   // 並び替えモード中は完了ボタンで保存するためsaveTradesは呼ばない
   drawLog();
 }

@@ -426,22 +426,6 @@ padding:8px;outline:none;
   <div class="rank-grid" id="rank-grid"></div>
 </div>
 
-<!-- AI改善提案 -->
-<div class="panel" id="wrap-ai-advice" style="display:none;margin-bottom:10px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <div class="panel-title" style="margin:0;">🤖 AI改善提案</div>
-    <button onclick="getAiAdvice()" id="ai-advice-btn" style="
-      background:linear-gradient(135deg,#0d1528,#1a2440);
-      border:1px solid #70d0ff;border-radius:20px;
-      color:#70d0ff;-webkit-text-fill-color:#70d0ff !important;
-      font-size:11px;font-weight:700;padding:4px 14px;cursor:pointer;
-      font-family:'Zen Kaku Gothic New',sans-serif;">分析する</button>
-  </div>
-  <div id="ai-advice-content" style="font-size:12px;color:var(--text);line-height:1.8;">
-    <div style="color:var(--dim);font-size:11px;">「分析する」を押すと、あなたのトレード成績をAIが分析して最優先の改善点を提案します。</div>
-  </div>
-</div>
-
 <!-- CSV読み込み -->
 <div class="panel">
   <div class="panel-title">📂 CSV読み込み（列=1日分・縦に複数取引）</div>
@@ -608,7 +592,7 @@ function useLocally(){
   applyCardSettings();
   renderAnalytics();
   renderAch();
-  const today=new Date();
+  const today=getTradeDate();
   const y=today.getFullYear(),m=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
   setDateSel('in-date',y+'-'+m+'-'+d);
   setDateSel('imp-date',y+'-'+m+'-'+d);
@@ -899,15 +883,25 @@ function calcStats(arr){
 }
 
 // 今日・今月・今年の文字列
+// 7時基準の「今日」を返す（7時未満は前日扱い）
+function getTradeDate(d){
+  const dt = d || new Date();
+  if(dt.getHours() < 7){
+    const prev = new Date(dt);
+    prev.setDate(prev.getDate()-1);
+    return prev;
+  }
+  return dt;
+}
 function getTodayStr(){
-  const d=new Date();
+  const d=getTradeDate();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function getMonthStr(){
-  const d=new Date();
+  const d=getTradeDate();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
-function getYearStr(){return String(new Date().getFullYear());}
+function getYearStr(){return String(getTradeDate().getFullYear());}
 
 let _statTab='all';
 const _statTabCycle=['all','year','month','day'];
@@ -932,7 +926,7 @@ function getFilteredByTab(tab){
 }
 
 function getPrevSt(tab){
-  const now=new Date();
+  const now=getTradeDate();
   if(tab==='day'){
     const d=new Date(now); d.setDate(d.getDate()-1);
     const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1095,7 +1089,7 @@ function renderAnalytics(){
     }
   }
   const show=!!st;
-  ['wrap-records','wrap-equity','wrap-monthly','wrap-rank','wrap-ai-advice','wrap-log'].forEach(id=>{
+  ['wrap-records','wrap-equity','wrap-monthly','wrap-rank','wrap-log'].forEach(id=>{
     document.getElementById(id).style.display=show?'':'none';
   });
   if(!show){
@@ -1210,7 +1204,7 @@ function getPrevTab(tab){
 }
 
 function getTradesForPrev(tab){
-  const now=new Date();
+  const now=getTradeDate();
   if(tab==='prevDay'){
     const d=new Date(now); d.setDate(d.getDate()-1);
     return trades.filter(t=>t.date===toDateStr(d));
@@ -1242,7 +1236,7 @@ function getParentTab(tab){
 }
 
 function getTabLabel(tab){
-  const now=new Date();
+  const now=getTradeDate();
   if(tab==='all') return '全';
   if(tab==='year') return now.getFullYear()+'年';
   if(tab==='month') return (now.getMonth()+1)+'月';
@@ -1313,7 +1307,7 @@ function cycleRecTab(){
 }
 
 function renderRecords(){
-  const now=new Date();
+  const now=getTradeDate();
   const y=now.getFullYear(), m=now.getMonth()+1, d=now.getDate();
   const todayStr=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
   const thisMonthStr=y+'-'+String(m).padStart(2,'0');
@@ -2380,70 +2374,7 @@ function renderStreak(){
 }
 
 // ===== プルダウン日付ヘルパー =====
-async function getAiAdvice(){
-  const st = calcStats();
-  if(!st){ showToast('⚠️ データがありません'); return; }
 
-  const btn = document.getElementById('ai-advice-btn');
-  const cont = document.getElementById('ai-advice-content');
-  btn.textContent = '分析中...';
-  btn.style.opacity = '.6';
-  btn.disabled = true;
-  cont.innerHTML = '<div style="color:var(--dim);font-size:11px;">AIが分析しています...</div>';
-
-  const monthly = {};
-  trades.forEach(t => { const m = t.date.slice(0,7); monthly[m] = (monthly[m]||0) + t.pnl; });
-  const mVals = Object.values(monthly);
-  const bestMonth = mVals.length ? Math.max(...mVals) : 0;
-  const worstMonth = mVals.length ? Math.min(...mVals) : 0;
-
-  const prompt = `あなたはトレードコーチです。以下のトレード成績データを分析して、最優先で改善すべき点を1つだけ日本語で提案してください。
-
-【成績データ】
-- 総トレード数: ${st.total}回
-- 累計損益: ${Math.round(st.totalPnl).toLocaleString()}円
-- 勝率: ${st.winRate.toFixed(1)}%
-- プロフィットファクター(PF): ${st.pf >= 99 ? '∞' : st.pf.toFixed(2)}
-- 平均RR比: ${st.rr.toFixed(2)}
-- 平均利益: +${Math.round(st.avgWin).toLocaleString()}円
-- 平均損失: -${Math.round(st.avgLoss).toLocaleString()}円
-- 月次最高: +${Math.round(bestMonth).toLocaleString()}円
-- 月次最低: ${Math.round(worstMonth).toLocaleString()}円
-
-以下の形式で答えてください：
-【最優先改善点】（タイトル）
-（2〜3文で具体的な改善方法を提案）`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '分析できませんでした。';
-    const lines = text.split('\n').filter(l => l.trim());
-    let html = '';
-    lines.forEach(line => {
-      if(line.startsWith('【') && line.includes('】')) {
-        html += `<div style="font-size:13px;font-weight:800;color:#70d0ff;-webkit-text-fill-color:#70d0ff;margin-bottom:8px;">${line}</div>`;
-      } else {
-        html += `<div style="color:var(--text);font-size:12px;line-height:1.8;margin-bottom:4px;">${line}</div>`;
-      }
-    });
-    cont.innerHTML = html;
-  } catch(e) {
-    cont.innerHTML = '<div style="color:var(--red);font-size:11px;">分析に失敗しました。</div>';
-  }
-
-  btn.textContent = '再分析';
-  btn.style.opacity = '1';
-  btn.disabled = false;
-}
 
 function initDateSel(prefix, fromYear=2024, toYear=2030){
   const yEl=document.getElementById(prefix+'-y');
@@ -2509,7 +2440,7 @@ function setDateSel(prefix, dateStr){
       applyCardSettings();
       renderAnalytics();
       renderAch();
-      const today=new Date();
+      const today=getTradeDate();
       const y=today.getFullYear(),m=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
       setDateSel('in-date',y+'-'+m+'-'+d);
       setDateSel('imp-date',y+'-'+m+'-'+d);

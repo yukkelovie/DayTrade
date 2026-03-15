@@ -349,6 +349,14 @@ padding:8px;outline:none;
   </div>
 </div>
 
+<!-- 改善提案 -->
+<div id="wrap-advice" style="display:none;margin:8px 12px 0;">
+  <div style="background:#0a0e1a;border:1px solid #e8b84b44;border-radius:12px;padding:12px 14px;">
+    <div style="font-size:10px;font-weight:700;color:#e8b84b;letter-spacing:.12em;margin-bottom:6px;-webkit-text-fill-color:#e8b84b !important;">💡 最優先改善事項</div>
+    <div id="advice-text" style="font-size:12px;color:#c8d4f0;-webkit-text-fill-color:#c8d4f0 !important;line-height:1.7;"></div>
+  </div>
+</div>
+
 <!-- サマリー -->
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
@@ -391,6 +399,22 @@ padding:8px;outline:none;
 <div class="panel" id="wrap-rank" style="display:none">
   <div class="panel-title">🏅 ランク別成績</div>
   <div class="rank-grid" id="rank-grid"></div>
+</div>
+
+<!-- AI改善提案 -->
+<div class="panel" id="wrap-ai-advice" style="display:none;margin-bottom:10px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="panel-title" style="margin:0;">🤖 AI改善提案</div>
+    <button onclick="getAiAdvice()" id="ai-advice-btn" style="
+      background:linear-gradient(135deg,#0d1528,#1a2440);
+      border:1px solid #70d0ff;border-radius:20px;
+      color:#70d0ff;-webkit-text-fill-color:#70d0ff !important;
+      font-size:11px;font-weight:700;padding:4px 14px;cursor:pointer;
+      font-family:'Zen Kaku Gothic New',sans-serif;">分析する</button>
+  </div>
+  <div id="ai-advice-content" style="font-size:12px;color:var(--text);line-height:1.8;">
+    <div style="color:var(--dim);font-size:11px;">「分析する」を押すと、あなたのトレード成績をAIが分析して最優先の改善点を提案します。</div>
+  </div>
 </div>
 
 <!-- CSV読み込み -->
@@ -1011,7 +1035,7 @@ function renderAnalytics(){
     }
   }
   const show=!!st;
-  ['wrap-records','wrap-equity','wrap-monthly','wrap-rank','wrap-log'].forEach(id=>{
+  ['wrap-records','wrap-equity','wrap-monthly','wrap-rank','wrap-ai-advice','wrap-log'].forEach(id=>{
     document.getElementById(id).style.display=show?'':'none';
   });
   if(!show){
@@ -1068,7 +1092,7 @@ function renderAnalytics(){
     const el=document.getElementById(id);
     if(el){el.style.color='#ff4444';el.style.webkitTextFillColor='#ff4444';}
   });
-  drawEquity();drawMonthly();drawRank();renderStreak();
+  drawEquity();drawMonthly();drawRank();renderStreak();renderAdvice();
   // ログのデフォルト: 最後に取り込んだ日付
   if(trades.length){
     const lastDate=trades[trades.length-1].date;
@@ -2010,6 +2034,53 @@ function showToast(msg){
 }
 
 
+// ===== 改善提案 =====
+function renderAdvice(){
+  const el = document.getElementById('wrap-advice');
+  const txt = document.getElementById('advice-text');
+  if(!el||!txt) return;
+
+  const all = calcStats(trades);
+  if(!all){ el.style.display='none'; return; }
+
+  const now = new Date();
+  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const thisMonth = trades.filter(t=>t.date.startsWith(ym));
+  const month = calcStats(thisMonth);
+
+  let advice = null;
+
+  // 1. RRが1未満（損小利大になっていない）
+  if(all.rr < 1.0){
+    advice = '⚠️ 平均RRが ' + all.rr.toFixed(2) + ' と1未満です。平均利益（+' + Math.round(all.avgWin).toLocaleString() + '円）が平均損失（-' + Math.round(all.avgLoss).toLocaleString() + '円）を下回っています。利確を伸ばすか損切りを早めましょう。';
+  }
+  // 2. 今月のPFが全体より大幅に低い
+  else if(month && month.total >= 5 && month.pf < all.pf * 0.7){
+    advice = '⚠️ 今月のPF（' + month.pf.toFixed(2) + '）が全体PF（' + all.pf.toFixed(2) + '）より大きく下がっています。最近のトレードの質が落ちている可能性があります。';
+  }
+  // 3. 勝率は高いがPFが低い（小さく勝って大きく負けている）
+  else if(all.winRate >= 60 && all.pf < 1.2){
+    advice = '⚠️ 勝率（' + all.winRate.toFixed(1) + '%）は高いですが、PF（' + all.pf.toFixed(2) + '）が低いです。負けトレードの損失が大きすぎる可能性があります。損切りルールを見直しましょう。';
+  }
+  // 4. 今月の勝率が全体より大幅に低い
+  else if(month && month.total >= 5 && month.winRate < all.winRate - 15){
+    advice = '⚠️ 今月の勝率（' + month.winRate.toFixed(1) + '%）が全体（' + all.winRate.toFixed(1) + '%）より' + (all.winRate - month.winRate).toFixed(1) + '%低いです。エントリー精度が落ちていないか確認しましょう。';
+  }
+  // 5. RRは良いが勝率が低い
+  else if(all.rr >= 2.0 && all.winRate < 40){
+    advice = '💡 RR（' + all.rr.toFixed(2) + '）は良好ですが、勝率（' + all.winRate.toFixed(1) + '%）が低いです。エントリー精度を上げることで大きく改善できます。';
+  }
+  // 6. 良好な状態
+  else {
+    advice = '✅ 現在のPF（' + all.pf.toFixed(2) + '）・RR（' + all.rr.toFixed(2) + '）・勝率（' + all.winRate.toFixed(1) + '%）は良好です。このペースを維持しましょう！';
+  }
+
+  txt.textContent = advice;
+  txt.style.color = advice.startsWith('✅') ? '#2dcc8a' : '#c8d4f0';
+  txt.style.webkitTextFillColor = advice.startsWith('✅') ? '#2dcc8a' : '#c8d4f0';
+  el.style.display = 'block';
+}
+
 // ===== 連続記録計算 =====
 function calcStreaks(){
   if(!trades.length) return null;
@@ -2088,6 +2159,71 @@ function renderStreak(){
 }
 
 // ===== プルダウン日付ヘルパー =====
+async function getAiAdvice(){
+  const st = calcStats();
+  if(!st){ showToast('⚠️ データがありません'); return; }
+
+  const btn = document.getElementById('ai-advice-btn');
+  const cont = document.getElementById('ai-advice-content');
+  btn.textContent = '分析中...';
+  btn.style.opacity = '.6';
+  btn.disabled = true;
+  cont.innerHTML = '<div style="color:var(--dim);font-size:11px;">AIが分析しています...</div>';
+
+  const monthly = {};
+  trades.forEach(t => { const m = t.date.slice(0,7); monthly[m] = (monthly[m]||0) + t.pnl; });
+  const mVals = Object.values(monthly);
+  const bestMonth = mVals.length ? Math.max(...mVals) : 0;
+  const worstMonth = mVals.length ? Math.min(...mVals) : 0;
+
+  const prompt = `あなたはトレードコーチです。以下のトレード成績データを分析して、最優先で改善すべき点を1つだけ日本語で提案してください。
+
+【成績データ】
+- 総トレード数: ${st.total}回
+- 累計損益: ${Math.round(st.totalPnl).toLocaleString()}円
+- 勝率: ${st.winRate.toFixed(1)}%
+- プロフィットファクター(PF): ${st.pf >= 99 ? '∞' : st.pf.toFixed(2)}
+- 平均RR比: ${st.rr.toFixed(2)}
+- 平均利益: +${Math.round(st.avgWin).toLocaleString()}円
+- 平均損失: -${Math.round(st.avgLoss).toLocaleString()}円
+- 月次最高: +${Math.round(bestMonth).toLocaleString()}円
+- 月次最低: ${Math.round(worstMonth).toLocaleString()}円
+
+以下の形式で答えてください：
+【最優先改善点】（タイトル）
+（2〜3文で具体的な改善方法を提案）`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '分析できませんでした。';
+    const lines = text.split('\n').filter(l => l.trim());
+    let html = '';
+    lines.forEach(line => {
+      if(line.startsWith('【') && line.includes('】')) {
+        html += `<div style="font-size:13px;font-weight:800;color:#70d0ff;-webkit-text-fill-color:#70d0ff;margin-bottom:8px;">${line}</div>`;
+      } else {
+        html += `<div style="color:var(--text);font-size:12px;line-height:1.8;margin-bottom:4px;">${line}</div>`;
+      }
+    });
+    cont.innerHTML = html;
+  } catch(e) {
+    cont.innerHTML = '<div style="color:var(--red);font-size:11px;">分析に失敗しました。</div>';
+  }
+
+  btn.textContent = '再分析';
+  btn.style.opacity = '1';
+  btn.disabled = false;
+}
+
 function initDateSel(prefix, fromYear=2024, toYear=2030){
   const yEl=document.getElementById(prefix+'-y');
   const mEl=document.getElementById(prefix+'-m');

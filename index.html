@@ -456,6 +456,7 @@ padding:8px;outline:none;
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
       <button class="btn btn-sm" style="border-color:#4a8cff;color:#4a8cff;background:linear-gradient(135deg,#00081a,#001028)" onclick="exportCSV()">📥 CSV出力</button>
       <button id="sort-btn" class="btn btn-sm" style="border-color:#9b6dff;color:#9b6dff;background:linear-gradient(135deg,#0a0018,#14002a)" onclick="toggleSortMode()">並び替え</button>
+      <button id="reverse-btn" class="btn btn-sm" style="display:none;border-color:#e8b84b;color:#e8b84b;background:linear-gradient(135deg,#1a1400,#2a2000)" onclick="reverseSelected()">⇅ 逆順</button>
       <button class="btn btn-sm" style="border-color:#ff8c44;color:#ff8c44;background:linear-gradient(135deg,#1a0800,#2a1000)" onclick="clearPeriod()">期間削除</button>
       <button class="btn btn-red btn-sm" onclick="clearAll()">全削除</button>
     </div>
@@ -465,6 +466,11 @@ padding:8px;outline:none;
     <div style="color:var(--dim);font-size:11px;padding-bottom:8px;">〜</div>
     <div class="fi" style="flex:1;min-width:110px;"><label>終了日</label><div class="date-sel" id="log-to-wrap"><select class="sel-y" id="log-to-y" onchange="drawLog()"></select><span>/</span><select class="sel-m" id="log-to-m" onchange="drawLog()"></select><span>/</span><select class="sel-d" id="log-to-d" onchange="drawLog()"></select></div></div>
 
+  </div>
+  <div id="log-select-bar" style="display:none;gap:6px;margin-bottom:8px;align-items:center;">
+    <button onclick="selectAllLog()" class="btn btn-sm" style="font-size:10px;padding:4px 10px;border-color:#9b6dff;color:#9b6dff;background:linear-gradient(135deg,#0a0018,#14002a);">全選択</button>
+    <button onclick="deselectAllLog()" class="btn btn-sm" style="font-size:10px;padding:4px 10px;">全解除</button>
+    <span id="log-select-count" style="font-size:10px;color:var(--dim);"></span>
   </div>
   <div class="log-header">
     <div>日付</div><div></div><div style="text-align:right">損益</div><div></div>
@@ -1721,6 +1727,8 @@ function toggleSortMode(){
     btn.style.borderColor='#2dcc8a';
     btn.style.color='#2dcc8a';
     btn.style.background='linear-gradient(135deg,#001a0e,#002a18)';
+    document.getElementById('reverse-btn').style.display='';
+    document.getElementById('log-select-bar').style.display='flex';
     showToast('並び替えモード: チェックして複数選択、ドラッグで移動');
   } else {
     // 適用して保存
@@ -1735,6 +1743,8 @@ function toggleSortMode(){
     btn.style.borderColor='#9b6dff';
     btn.style.color='#9b6dff';
     btn.style.background='linear-gradient(135deg,#0a0018,#14002a)';
+    document.getElementById('reverse-btn').style.display='none';
+    document.getElementById('log-select-bar').style.display='none';
   }
   drawLog();
 }
@@ -1772,6 +1782,9 @@ function drawLog(){
     return;
   }
   _sortFiltered=filtered;
+  // 選択数カウント更新
+  const countEl=document.getElementById('log-select-count');
+  if(countEl) countEl.textContent=_selectedIds.size>0?_selectedIds.size+'件選択中':'';
   wrap.innerHTML=filtered.map(t=>{
     const id=t.id;
     const isSelected=_selectedIds.has(String(id));
@@ -1887,6 +1900,52 @@ function showHelp(title, body){
 }
 function closeHelp(){
   document.getElementById('help-modal').style.display='none';
+}
+
+function selectAllLog(){
+  if(!_sortFiltered) return;
+  _sortFiltered.forEach(t => _selectedIds.add(String(t.id)));
+  drawLog();
+}
+
+function deselectAllLog(){
+  _selectedIds.clear();
+  drawLog();
+}
+
+function reverseSelected(){
+  if(!_sortFiltered) return;
+  if(_selectedIds.size < 2){ showToast('⚠️ 2件以上選択してください'); return; }
+
+  // 選択されたアイテムのインデックスと中身を取得
+  const selectedIndices = [];
+  const selectedItems = [];
+  _sortFiltered.forEach((t, i) => {
+    if(_selectedIds.has(String(t.id))){
+      selectedIndices.push(i);
+      selectedItems.push(t);
+    }
+  });
+
+  // 日付チェック
+  const dates = new Set(selectedItems.map(t=>t.date));
+  if(dates.size > 1){ showToast('⚠️ 同じ日の取引のみ並び替えできます'); return; }
+
+  // 逆順に差し込む
+  selectedItems.reverse();
+  selectedIndices.forEach((idx, i) => {
+    _sortFiltered[idx] = selectedItems[i];
+  });
+
+  // trades全体に反映
+  const normalOrdered = _logReversed ? [..._sortFiltered].reverse() : _sortFiltered;
+  const filteredSet = new Set(normalOrdered.map(t=>String(t.id)));
+  const others = trades.filter(t=>!filteredSet.has(String(t.id)));
+  trades = [...others, ...normalOrdered];
+
+  _selectedIds.clear();
+  drawLog();
+  showToast('✅ 選択した取引を逆順にしました');
 }
 
 function toggleSelectRow(id, e){

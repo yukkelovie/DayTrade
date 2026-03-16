@@ -475,7 +475,7 @@ padding:8px;outline:none;
 
 <div class="panel" id="wrap-log" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">old↓</button></div>
+    <div class="panel-title" style="margin:0">📋 取引ログ <span id="log-count" style="color:var(--gold)"></span> <button class="btn btn-sm" id="log-order-btn" style="font-size:10px;padding:3px 8px;" onclick="toggleLogOrder()">new↓</button></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
       <button class="btn btn-sm" style="border-color:#4a8cff;color:#4a8cff;background:linear-gradient(135deg,#00081a,#001028)" onclick="exportCSV()">📥 CSV出力</button>
       <button id="sort-btn" class="btn btn-sm" style="border-color:#9b6dff;color:#9b6dff;background:linear-gradient(135deg,#0a0018,#14002a)" onclick="toggleSortMode()">編集</button>
@@ -1794,7 +1794,7 @@ function exportCSV(){
   showToast('📥 CSV出力しました');
 }
 
-let _logReversed=false;
+let _logReversed=true;
 let _sortFiltered=null;
 let _sortMode=false;
 let _selectedIds=new Set();

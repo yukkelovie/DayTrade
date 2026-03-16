@@ -1573,14 +1573,21 @@ function drawEquity(){
   else if(_equityPeriod==='month') filteredTrades=trades.filter(t=>t.date.startsWith(y+'-'+m));
   else if(_equityPeriod==='day') filteredTrades=trades.filter(t=>t.date===y+'-'+m+'-'+d);
 
-  // 日単位で集計
-  const daily={};
-  filteredTrades.forEach(t=>{daily[t.date]=(daily[t.date]||0)+t.pnl;});
-  const dates=Object.keys(daily).sort();
-  if(!dates.length)return;
-
-  let cum=0;
-  const pts=[{d:'',v:0},...dates.map(d=>{cum+=daily[d];return{d,v:cum,day:daily[d]};})];
+  let pts;
+  if(_equityPeriod==='day'){
+    // 日モードは取引1件ずつプロット
+    if(!filteredTrades.length) return;
+    let cum=0;
+    pts=[{d:'',v:0,day:0},...filteredTrades.map((t,i)=>{cum+=t.pnl;return{d:t.date,v:cum,day:t.pnl,idx:i+1};})];
+  } else {
+    // それ以外は日単位で集計
+    const daily={};
+    filteredTrades.forEach(t=>{daily[t.date]=(daily[t.date]||0)+t.pnl;});
+    const dates=Object.keys(daily).sort();
+    if(!dates.length)return;
+    let cum=0;
+    pts=[{d:'',v:0},...dates.map(d=>{cum+=daily[d];return{d,v:cum,day:daily[d]};})];
+  }
   const vals=pts.map(p=>p.v);
   const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
   const pad=36,toY=v=>pad+(H-pad*1.5)*(mx-v)/rng;
@@ -1640,9 +1647,10 @@ function drawEquity(){
     const cum=p.v;
     const col=dayPnl>=0?'#2dcc8a':'#ff4444';
     const cumCol=cum>=0?'#2dcc8a':'#ff4444';
+    const label=_equityPeriod==='day'?(p.idx+'件目'):p.d.slice(5).replace('-','/');
     showChartTip(c,clientX,clientY,
-      '<span style="color:#c8d4f0">'+p.d.slice(5).replace('-','/')+'</span><br>'
-      +'当日: <span style="color:'+col+'">'+(dayPnl>=0?'+':'')+dayPnl.toLocaleString()+'円</span><br>'
+      '<span style="color:#c8d4f0">'+label+'</span><br>'
+      +(_equityPeriod==='day'?'損益: ':'当日: ')+'<span style="color:'+col+'">'+(dayPnl>=0?'+':'')+dayPnl.toLocaleString()+'円</span><br>'
       +'累計: <span style="color:'+cumCol+'">'+(cum>=0?'+':'')+Math.round(cum).toLocaleString()+'円</span>'
     );
   };

@@ -420,7 +420,15 @@ padding:8px;outline:none;
 <!-- 累計グラフ -->
 
 <div class="chart-wrap" id="wrap-equity" style="display:none">
-  <div class="chart-title">📈 累計損益推移</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="chart-title" style="margin:0;">📈 累計損益推移</div>
+    <div style="display:flex;gap:4px;">
+      <button onclick="setEquityPeriod('all',this)" class="eq-period-btn" style="background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold);border-radius:12px;color:var(--gold);-webkit-text-fill-color:var(--gold);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">全</button>
+      <button onclick="setEquityPeriod('year',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">年</button>
+      <button onclick="setEquityPeriod('month',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">月</button>
+      <button onclick="setEquityPeriod('day',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">日</button>
+    </div>
+  </div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
@@ -1534,15 +1542,40 @@ function hideChartTip(){ document.getElementById('chart-tooltip').style.display=
 // equityチャートのデータをグローバルに保持（tooltip用）
 let _eqPts=[], _eqPad=36, _eqXS=1, _eqW=300, _eqH=140;
 
+let _equityPeriod = 'all';
+
+function setEquityPeriod(period, btn){
+  _equityPeriod = period;
+  document.querySelectorAll('.eq-period-btn').forEach(b=>{
+    b.style.background='none';
+    b.style.borderColor='var(--dim)';
+    b.style.color='var(--dim)';
+    b.style.webkitTextFillColor='var(--dim)';
+  });
+  btn.style.background='linear-gradient(135deg,#1a1400,#2a2000)';
+  btn.style.borderColor='var(--gold)';
+  btn.style.color='var(--gold)';
+  btn.style.webkitTextFillColor='var(--gold)';
+  drawEquity();
+}
+
 function drawEquity(){
   const c=document.getElementById('chart-equity');
   const ctx=c.getContext('2d');
   const W=c.offsetWidth||300,H=c.offsetHeight||140;
   c.width=W*2;c.height=H*2;ctx.scale(2,2);ctx.clearRect(0,0,W,H);
 
+  // 期間フィルター
+  const now=getTradeDate();
+  const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),d=String(now.getDate()).padStart(2,'0');
+  let filteredTrades=trades;
+  if(_equityPeriod==='year') filteredTrades=trades.filter(t=>t.date.startsWith(String(y)));
+  else if(_equityPeriod==='month') filteredTrades=trades.filter(t=>t.date.startsWith(y+'-'+m));
+  else if(_equityPeriod==='day') filteredTrades=trades.filter(t=>t.date===y+'-'+m+'-'+d);
+
   // 日単位で集計
   const daily={};
-  trades.forEach(t=>{daily[t.date]=(daily[t.date]||0)+t.pnl;});
+  filteredTrades.forEach(t=>{daily[t.date]=(daily[t.date]||0)+t.pnl;});
   const dates=Object.keys(daily).sort();
   if(!dates.length)return;
 
@@ -2299,7 +2332,12 @@ function renderAch(){
       const el=document.createElement('div');
       el.className='ach'+(u?' unlocked':'');
       el.style.setProperty('--ac',RC[item.rank]);
-      el.id='ach-'+item.id;el.onclick=()=>toggleAch(item.id);
+      el.id='ach-'+item.id;
+      // 解除済みの場合は派手な枠と光彩を追加
+      if(u){
+        el.style.boxShadow='0 0 16px '+RC[item.rank]+'88, inset 0 0 20px '+RC[item.rank]+'22';
+        el.style.border='2px solid '+RC[item.rank];
+      }
       el.innerHTML='<div class="ach-check">'+(u?'✓':'')+'</div>'
         +'<div class="ach-rank rank-'+item.rank+'">'+RL[item.rank]+'</div>'
         +'<span class="ach-icon">'+item.icon+'</span>'
@@ -2318,17 +2356,6 @@ function renderAch(){
   document.getElementById('st-plat').textContent=platC;
 }
 
-function toggleAch(id){
-  const s=achState[id]||{};
-  if(s.unlocked){achState[id]={unlocked:false};}
-  else{
-    const now=new Date();
-    achState[id]={unlocked:true,date:now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()};
-    const el=document.getElementById('ach-'+id);
-    if(el){el.classList.add('just-unlocked');setTimeout(()=>el.classList.remove('just-unlocked'),500);}
-  }
-  saveAch();renderAch();
-}
 
 function switchTab(tab,el){
   document.getElementById('tab-analytics').classList.toggle('hidden',tab!=='analytics');

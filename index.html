@@ -679,7 +679,19 @@ function showMainScreen(user){
 
 // ===== Supabase REST fetchヘルパー（認証トークン付き） =====
 async function sbFetch(path, method='GET', body=null){
-  const token = _currentSession ? _currentSession.access_token : SUPABASE_KEY;
+  // セッションを最新の状態で取得
+  let token = SUPABASE_KEY;
+  if(_currentSession){
+    const now = Math.floor(Date.now()/1000);
+    if(_currentSession.expires_at && _currentSession.expires_at < now + 60){
+      // 期限切れ間近なら更新
+      const refreshed = await _sb.auth.refreshSession();
+      if(refreshed.data.session){
+        _currentSession = refreshed.data.session;
+      }
+    }
+    token = _currentSession.access_token;
+  }
   const opts={
     method,
     mode:'cors',

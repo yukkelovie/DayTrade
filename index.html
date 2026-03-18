@@ -1818,14 +1818,9 @@ function toggleSortMode(){
     document.getElementById('clear-all-btn').style.display='none';
     showToast('編集モード: チェックして複数選択、ドラッグで移動');
   } else {
-    // 適用して保存
-    if(_sortFiltered){
-      const filteredSet=new Set(_sortFiltered.map(t=>String(t.id)));
-      const others=trades.filter(t=>!filteredSet.has(String(t.id)));
-      trades=[...others,...(_logReversed?[..._sortFiltered].reverse():_sortFiltered)];
-      saveTrades();
-      showToast('✅ 保存しました');
-    }
+    // 適用して保存（tradesはすでに正しい状態）
+    saveTrades();
+    showToast('✅ 保存しました');
     btn.textContent='編集';
     btn.style.borderColor='#9b6dff';
     btn.style.color='#9b6dff';
@@ -2015,12 +2010,14 @@ function closeHelp(){
 
 function deleteSelected(){
   if(_selectedIds.size===0){ showToast('⚠️ 削除する取引を選択してください'); return; }
-  showConfirm(_selectedIds.size+'件の取引を削除しますか？', ()=>{
+  const count=_selectedIds.size;
+  showConfirm(count+'件の取引を削除しますか？', ()=>{
     trades = trades.filter(t=>!_selectedIds.has(String(t.id)));
+    if(_sortFiltered) _sortFiltered=_sortFiltered.filter(t=>!_selectedIds.has(String(t.id)));
     _selectedIds.clear();
     saveTrades();
     renderAnalytics();
-    showToast('🗑 '+_selectedIds.size+'件削除しました');
+    showToast('🗑 '+count+'件削除しました');
   });
 }
 

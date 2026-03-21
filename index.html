@@ -395,6 +395,20 @@ padding:8px;outline:none;
   </div>
 </div>
 
+<!-- 成績コピーボタン -->
+<div style="margin:8px 12px 0;text-align:right;">
+  <button onclick="copyStats()" style="
+    background:none;border:1px solid #3a4a6a;border-radius:8px;
+    color:#3a4a6a;-webkit-text-fill-color:#3a4a6a;
+    font-size:10px;padding:5px 12px;cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    transition:all .2s;
+  " onmouseover="this.style.borderColor='#e8b84b';this.style.color='#e8b84b';this.style.webkitTextFillColor='#e8b84b'"
+     onmouseout="this.style.borderColor='#3a4a6a';this.style.color='#3a4a6a';this.style.webkitTextFillColor='#3a4a6a'">
+    📋 成績をコピー
+  </button>
+</div>
+
 <!-- サマリー -->
 <div class="summary-grid" id="wrap-summary" style="display:none!important">
   <div style="display:flex;justify-content:center;margin-bottom:12px;">
@@ -2552,6 +2566,76 @@ function confirmOK(){
 function confirmCancel(){
   document.getElementById('confirmModal').style.display='none';
   _confirmCb=null;
+}
+
+function copyStats(){
+  const label = getOffsetLabel();
+  const arr = getFilteredByOffset();
+  const st = calcStats(arr);
+
+  let text = '';
+  if(!st){
+    text = '【'+label+'の成績】\nデータなし';
+  } else {
+    // 期間の日付範囲を取得
+    const now = getTradeDate();
+    let dateRange = '';
+    if(_statTab==='week'){
+      const mon=getWeekMonday(getOffsetDate());
+      const fri=new Date(mon); fri.setDate(mon.getDate()+4);
+      dateRange = (mon.getMonth()+1)+'/'+mon.getDate()+'〜'+(fri.getMonth()+1)+'/'+fri.getDate();
+    } else if(_statTab==='day'){
+      const d=getOffsetDate();
+      dateRange = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+    } else if(_statTab==='month'){
+      const d=getOffsetDate();
+      dateRange = d.getFullYear()+'/'+(d.getMonth()+1);
+    } else if(_statTab==='year'){
+      dateRange = getOffsetDate().getFullYear()+'年';
+    } else {
+      dateRange = '全期間';
+    }
+
+    const totalWin = st.wins.reduce((s,t)=>s+t.pnl,0);
+    const totalLoss = Math.abs(st.losses.reduce((s,t)=>s+t.pnl,0));
+    const bestWin = st.wins.length ? Math.max(...st.wins.map(t=>t.pnl)) : 0;
+    const bestLoss = st.losses.length ? Math.max(...st.losses.map(t=>Math.abs(t.pnl))) : 0;
+    const adviceEl = document.getElementById('advice-text');
+    const advice = adviceEl ? adviceEl.textContent : '';
+
+    text = `【${label}の成績】${dateRange}
+━━━━━━━━━━━━━━
+📊 基本成績
+トレード数: ${st.total}回（勝ち${st.wins.length}回 / 負け${st.losses.length}回）
+勝率: ${st.winRate.toFixed(1)}%
+累計損益: ${st.totalPnl>=0?'+':''}${Math.round(st.totalPnl).toLocaleString()}円
+━━━━━━━━━━━━━━
+💰 損益詳細
+総利益: +${Math.round(totalWin).toLocaleString()}円
+総損失: -${Math.round(totalLoss).toLocaleString()}円
+平均利益: +${Math.round(st.avgWin).toLocaleString()}円
+平均損失: -${Math.round(st.avgLoss).toLocaleString()}円
+最高利益: +${Math.round(bestWin).toLocaleString()}円
+最高損失: -${Math.round(bestLoss).toLocaleString()}円
+━━━━━━━━━━━━━━
+📈 指標
+PF: ${st.pf>=99?'∞':st.pf.toFixed(2)}
+平均RR: ${st.rr.toFixed(2)}
+━━━━━━━━━━━━━━${advice?'\n💡 改善ポイント\n'+advice:''}`;
+  }
+
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('📋 成績をコピーしました！');
+  }).catch(()=>{
+    // フォールバック
+    const el=document.createElement('textarea');
+    el.value=text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('📋 成績をコピーしました！');
+  });
 }
 
 function showToast(msg){

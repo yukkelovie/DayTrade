@@ -332,7 +332,7 @@ padding:8px;outline:none;
 <!-- トップカード -->
 <div style="margin:12px 0 6px;">
   <!-- 期間切り替えタブ -->
-  <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-bottom:8px;">
+  <div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-bottom:8px;position:relative;">
     <button id="stat-prev-btn" onclick="navigateStatTab(-1)" style="
       background:none;border:none;
       color:var(--gold);-webkit-text-fill-color:var(--gold);
@@ -354,6 +354,13 @@ padding:8px;outline:none;
       cursor:pointer;font-size:14px;font-weight:700;
       padding:0;visibility:hidden;
     ">▶</button>
+    <button onclick="copyStats()" style="
+      position:absolute;right:12px;
+      background:none;border:1px solid #3a4a6a;border-radius:8px;
+      color:#3a4a6a;-webkit-text-fill-color:#3a4a6a;
+      font-size:10px;padding:4px 10px;cursor:pointer;
+      font-family:'Zen Kaku Gothic New',sans-serif;
+    ">📋</button>
   </div>
   <!-- 統計カード -->
   <div class="stats-bar">
@@ -393,20 +400,6 @@ padding:8px;outline:none;
     <div style="font-size:10px;font-weight:700;color:#e8b84b;letter-spacing:.12em;margin-bottom:6px;-webkit-text-fill-color:#e8b84b !important;">💡 最優先改善事項</div>
     <div id="advice-text" style="font-size:12px;color:#c8d4f0;-webkit-text-fill-color:#c8d4f0 !important;line-height:1.7;"></div>
   </div>
-</div>
-
-<!-- 成績コピーボタン -->
-<div style="margin:8px 12px 0;text-align:right;">
-  <button onclick="copyStats()" style="
-    background:none;border:1px solid #3a4a6a;border-radius:8px;
-    color:#3a4a6a;-webkit-text-fill-color:#3a4a6a;
-    font-size:10px;padding:5px 12px;cursor:pointer;
-    font-family:'Zen Kaku Gothic New',sans-serif;
-    transition:all .2s;
-  " onmouseover="this.style.borderColor='#e8b84b';this.style.color='#e8b84b';this.style.webkitTextFillColor='#e8b84b'"
-     onmouseout="this.style.borderColor='#3a4a6a';this.style.color='#3a4a6a';this.style.webkitTextFillColor='#3a4a6a'">
-    📋 成績をコピー
-  </button>
 </div>
 
 <!-- サマリー -->
@@ -2620,8 +2613,7 @@ function copyStats(){
 ━━━━━━━━━━━━━━
 📈 指標
 PF: ${st.pf>=99?'∞':st.pf.toFixed(2)}
-平均RR: ${st.rr.toFixed(2)}
-━━━━━━━━━━━━━━${advice?'\n💡 改善ポイント\n'+advice:''}`;
+平均RR: ${st.rr.toFixed(2)}`;
   }
 
   navigator.clipboard.writeText(text).then(()=>{

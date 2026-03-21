@@ -945,12 +945,16 @@ function calcStats(arr){
 // 7時基準の「今日」を返す（7時未満は前日扱い）
 function getTradeDate(d){
   const dt = d || new Date();
-  if(dt.getHours() < 7){
-    const prev = new Date(dt);
-    prev.setDate(prev.getDate()-1);
-    return prev;
+  let result = new Date(dt);
+  // 7時前は前日扱い
+  if(result.getHours() < 7){
+    result.setDate(result.getDate()-1);
   }
-  return dt;
+  // 土日は直前の金曜日に戻す
+  while(result.getDay()===0 || result.getDay()===6){
+    result.setDate(result.getDate()-1);
+  }
+  return result;
 }
 function getTodayStr(){
   const d=getTradeDate();
@@ -964,21 +968,75 @@ function getYearStr(){return String(getTradeDate().getFullYear());}
 
 let _statTab='all';
 let _statOffset=0; // 現在表示中のオフセット（0=今日/今月/今年）
-const _statTabCycle=['all','year','month','day'];
+const _statTabCycle=['all','year','month','week','day'];
+
+// 営業日スキップ（土日を飛ばす）
+function skipWeekend(d, dir){
+  // dir: 1=前へ, -1=次へ（過去方向が1）
+  while(d.getDay()===0 || d.getDay()===6){
+    d.setDate(d.getDate() - dir);
+  }
+  return d;
+}
+
+// 週の月曜日を返す
+function getWeekMonday(d){
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon = new Date(d);
+  mon.setDate(d.getDate() + diff);
+  return mon;
+}
 
 function navigateStatTab(dir){
   if(_statTab==='all') return;
-  _statOffset+=dir;
-  if(_statOffset>0) _statOffset=0; // 未来には行けない
+  if(_statTab==='day'){
+    // 日モードは土日スキップしながら移動
+    const now=getTradeDate();
+    // 現在の表示日から移動
+    let current=getOffsetDate();
+    current.setDate(current.getDate() - dir);
+    // 土日スキップ
+    while(current.getDay()===0 || current.getDay()===6){
+      current.setDate(current.getDate() - dir);
+    }
+    // 未来には行けない
+    if(toDateStr(current) >= toDateStr(now)){
+      _statOffset=0;
+    } else {
+      // 営業日単位でoffsetを計算
+      let count=0;
+      let d=new Date(now);
+      while(toDateStr(d) > toDateStr(current)){
+        d.setDate(d.getDate()-1);
+        if(d.getDay()!==0 && d.getDay()!==6) count++;
+      }
+      _statOffset = -count;
+    }
+  } else {
+    _statOffset += dir;
+    if(_statOffset>0) _statOffset=0;
+  }
+  clearStatSubTexts();
   updateStatCards();
 }
 
 function getOffsetDate(){
-  // _statOffsetに基づいてオフセットされた基準日を返す
   const now=getTradeDate();
   if(_statTab==='day'){
-    const d=new Date(now); d.setDate(d.getDate()+_statOffset);
+    if(_statOffset===0) return new Date(now);
+    // 営業日単位でoffset分遡る
+    let d=new Date(now);
+    let remaining=Math.abs(_statOffset);
+    while(remaining>0){
+      d.setDate(d.getDate()-1);
+      if(d.getDay()!==0 && d.getDay()!==6) remaining--;
+    }
     return d;
+  } else if(_statTab==='week'){
+    const mon=getWeekMonday(now);
+    mon.setDate(mon.getDate()+_statOffset*7);
+    return mon;
   } else if(_statTab==='month'){
     const d=new Date(now); d.setMonth(d.getMonth()+_statOffset);
     return d;
@@ -992,11 +1050,16 @@ function getOffsetDate(){
 function getOffsetLabel(){
   if(_statTab==='all') return '全トレード';
   if(_statOffset===0){
-    const labels={year:'今年',month:'今月',day:'今日'};
+    const labels={year:'今年',month:'今月',week:'今週',day:'今日'};
     return labels[_statTab];
   }
   const d=getOffsetDate();
   if(_statTab==='day') return (d.getMonth()+1)+'/'+d.getDate();
+  if(_statTab==='week'){
+    const mon=d;
+    const fri=new Date(mon); fri.setDate(mon.getDate()+4);
+    return (mon.getMonth()+1)+'/'+mon.getDate()+'〜'+(fri.getMonth()+1)+'/'+fri.getDate();
+  }
   if(_statTab==='month') return d.getFullYear()+'/'+(d.getMonth()+1)+'月';
   if(_statTab==='year') return d.getFullYear()+'年';
   return '';
@@ -1009,6 +1072,13 @@ function getFilteredByOffset(){
   const m=String(d.getMonth()+1).padStart(2,'0');
   const day=String(d.getDate()).padStart(2,'0');
   if(_statTab==='day') return trades.filter(t=>t.date===y+'-'+m+'-'+day);
+  if(_statTab==='week'){
+    const mon=getWeekMonday(d);
+    const fri=new Date(mon); fri.setDate(mon.getDate()+4);
+    const monStr=toDateStr(mon);
+    const friStr=toDateStr(fri);
+    return trades.filter(t=>t.date>=monStr && t.date<=friStr);
+  }
   if(_statTab==='month') return trades.filter(t=>t.date.startsWith(y+'-'+m));
   if(_statTab==='year') return trades.filter(t=>t.date.startsWith(String(y)));
   return trades;
@@ -1066,10 +1136,21 @@ function getFilteredByTab(tab){
 function getPrevSt(tab){
   const base=getOffsetDate();
   if(tab==='day'){
-    const d=new Date(base); d.setDate(d.getDate()-1);
-    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const label=_statOffset===0?'昨日':(d.getMonth()+1)+'/'+d.getDate();
+    const d=new Date(base);
+    d.setDate(d.getDate()-1);
+    skipWeekend(d, 1);
+    const ds=toDateStr(d);
+    const label=_statOffset===0?'前営業日':(d.getMonth()+1)+'/'+d.getDate();
     return {label, st:calcStats(trades.filter(t=>t.date===ds))};
+  }
+  if(tab==='week'){
+    const mon=getWeekMonday(base);
+    mon.setDate(mon.getDate()-7);
+    const fri=new Date(mon); fri.setDate(mon.getDate()+4);
+    const monStr=toDateStr(mon);
+    const friStr=toDateStr(fri);
+    const label=_statOffset===0?'先週':(mon.getMonth()+1)+'/'+mon.getDate()+'〜';
+    return {label, st:calcStats(trades.filter(t=>t.date>=monStr&&t.date<=friStr))};
   }
   if(tab==='month'){
     const d=new Date(base); d.setMonth(d.getMonth()-1);
@@ -1215,7 +1296,7 @@ function renderAnalytics(){
     // サブテキスト設定（全トレード以外）
     if(_statTab!=='all'){
       const prevLabel=getPrevLabel(_statTab);
-      const prevTabKey = _statTab==='day'?'prevDay':_statTab==='month'?'prevMonth':_statTab==='year'?'prevYear':null;
+      const prevTabKey = _statTab==='day'?'prevDay':_statTab==='week'?'prevWeek':_statTab==='month'?'prevMonth':_statTab==='year'?'prevYear':null;
       const prevTrades=prevTabKey?getTradesForPrev(prevTabKey):[];
       const ps=calcStatsFor(prevTrades);
       function setSub(id, val){
@@ -1362,7 +1443,14 @@ function getTradesForPrev(tab){
   const now=getTradeDate();
   if(tab==='prevDay'){
     const d=new Date(now); d.setDate(d.getDate()-1);
+    skipWeekend(d, 1);
     return trades.filter(t=>t.date===toDateStr(d));
+  }
+  if(tab==='prevWeek'){
+    const mon=getWeekMonday(now);
+    mon.setDate(mon.getDate()-7);
+    const fri=new Date(mon); fri.setDate(mon.getDate()+4);
+    return trades.filter(t=>t.date>=toDateStr(mon)&&t.date<=toDateStr(fri));
   }
   if(tab==='prevMonth'){
     const d=new Date(now); d.setMonth(d.getMonth()-1);
@@ -1377,7 +1465,8 @@ function getTradesForPrev(tab){
 }
 
 function getPrevLabel(tab){
-  if(tab==='day') return '昨日';
+  if(tab==='day') return '前営業日';
+  if(tab==='week') return '先週';
   if(tab==='month') return '先月';
   if(tab==='year') return '昨年';
   return null;
@@ -1407,7 +1496,7 @@ function renderSummary(){
 
   const cur=calcStatsFor(getTradesFor(_statTab));
   const prevLabel=_statTab!=='all'?getPrevLabel(_statTab):null;
-  const prevTabKey2=_statTab==='day'?'prevDay':_statTab==='month'?'prevMonth':_statTab==='year'?'prevYear':null;
+  const prevTabKey2=_statTab==='day'?'prevDay':_statTab==='week'?'prevWeek':_statTab==='month'?'prevMonth':_statTab==='year'?'prevYear':null;
   const par=prevLabel?calcStatsFor(getTradesForPrev(prevTabKey2)):null;
   const parLabel=prevLabel||'';
 

@@ -952,6 +952,7 @@ function getYearStr(){return String(getTradeDate().getFullYear());}
 
 let _statTab='all';
 let _statOffset=0; // 現在表示中のオフセット（0=今日/今月/今年）
+let _statDayDate=null; // 日モード専用：表示中の日付（nullなら今日）
 const _statTabCycle=['all','year','month','week','day'];
 
 // 営業日スキップ（土日を飛ばす）
@@ -976,19 +977,21 @@ function navigateStatTab(dir){
   if(_statTab==='all') return;
   if(_statTab==='day'){
     const now=getTradeDate();
-    let current=getOffsetDate();
-    // 1営業日分移動
-    current.setDate(current.getDate() - dir);
-    while(current.getDay()===0 || current.getDay()===6){
-      current.setDate(current.getDate() - dir);
-    }
-    // 未来には行けない（今日より後はNG）
+    // 現在の表示日
+    let current = _statDayDate ? new Date(_statDayDate) : new Date(now);
+    // 1日ずつ移動して土日をスキップ
+    do {
+      current.setDate(current.getDate() + dir);
+    } while(current.getDay()===0 || current.getDay()===6);
+    // 未来には行けない
     const nowMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const curMidnight=new Date(current.getFullYear(),current.getMonth(),current.getDate());
     if(curMidnight >= nowMidnight){
+      _statDayDate=null; // 今日に戻す
       _statOffset=0;
     } else {
-      _statOffset--;
+      _statDayDate=new Date(current);
+      _statOffset=-1; // 今日以外であることを示す
     }
   } else {
     _statOffset += dir;
@@ -1001,15 +1004,7 @@ function navigateStatTab(dir){
 function getOffsetDate(){
   const now=getTradeDate();
   if(_statTab==='day'){
-    if(_statOffset===0) return new Date(now);
-    // 営業日単位でoffset分遡る
-    let d=new Date(now);
-    let remaining=Math.abs(_statOffset);
-    while(remaining>0){
-      d.setDate(d.getDate()-1);
-      if(d.getDay()!==0 && d.getDay()!==6) remaining--;
-    }
-    return d;
+    return _statDayDate ? new Date(_statDayDate) : new Date(now);
   } else if(_statTab==='week'){
     const mon=getWeekMonday(now);
     mon.setDate(mon.getDate()+_statOffset*7);
@@ -1064,6 +1059,7 @@ function cycleStatTab(){
   const idx=_statTabCycle.indexOf(_statTab);
   _statTab=_statTabCycle[(idx+1)%_statTabCycle.length];
   _statOffset=0;
+  _statDayDate=null;
   clearStatSubTexts();
   updateArrowButtons();
   updateStatCards();
@@ -1071,6 +1067,7 @@ function cycleStatTab(){
 function switchStatTab(tab, el){
   _statTab=tab;
   _statOffset=0;
+  _statDayDate=null;
   document.querySelectorAll('.stat-tab').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   clearStatSubTexts();
@@ -1086,9 +1083,11 @@ function updateArrowButtons(){
   function showBtn(btn){ btn.style.visibility='visible'; btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
   function hideBtn(btn){ btn.style.visibility='hidden'; btn.style.opacity='0'; btn.style.pointerEvents='none'; }
 
+  const isAtPresent = _statTab==='day' ? !_statDayDate : _statOffset===0;
+
   if(_statTab==='all'){
     hideBtn(prevBtn); hideBtn(nextBtn);
-  } else if(_statOffset===0){
+  } else if(isAtPresent){
     showBtn(prevBtn); hideBtn(nextBtn);
   } else {
     showBtn(prevBtn); showBtn(nextBtn);

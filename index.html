@@ -430,15 +430,7 @@ padding:8px;outline:none;
 
 <!-- 累計グラフ -->
 <div class="chart-wrap" id="wrap-equity" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <div class="chart-title" style="margin:0;">📈 累計損益推移</div>
-    <div style="display:flex;gap:4px;">
-      <button onclick="setEquityPeriod('all',this)" class="eq-period-btn" style="background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold);border-radius:12px;color:var(--gold);-webkit-text-fill-color:var(--gold);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">全</button>
-      <button onclick="setEquityPeriod('year',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">年</button>
-      <button onclick="setEquityPeriod('month',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">月</button>
-      <button onclick="setEquityPeriod('day',this)" class="eq-period-btn" style="background:none;border:1px solid var(--dim);border-radius:12px;color:var(--dim);-webkit-text-fill-color:var(--dim);font-size:9px;font-weight:700;padding:3px 8px;cursor:pointer;font-family:inherit;">日</button>
-    </div>
-  </div>
+  <div class="chart-title">📈 累計損益推移</div>
   <div class="chart-area"><canvas id="chart-equity"></canvas></div>
 </div>
 
@@ -1157,6 +1149,8 @@ function updateStatCards(){
   updateArrowButtons();
   const arr=getFilteredByOffset();
   const st=calcStats(arr);
+  // グラフも連動して再描画
+  if(document.getElementById('chart-equity')) drawEquity();
 
   // ボタンテキスト更新
   const statBtn=document.getElementById('stat-tab-btn');
@@ -1738,16 +1732,12 @@ function drawEquity(){
   const W=c.offsetWidth||300,H=c.offsetHeight||140;
   c.width=W*2;c.height=H*2;ctx.scale(2,2);ctx.clearRect(0,0,W,H);
 
-  // 期間フィルター
-  const now=getTradeDate();
-  const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),d=String(now.getDate()).padStart(2,'0');
-  let filteredTrades=trades;
-  if(_equityPeriod==='year') filteredTrades=trades.filter(t=>t.date.startsWith(String(y)));
-  else if(_equityPeriod==='month') filteredTrades=trades.filter(t=>t.date.startsWith(y+'-'+m));
-  else if(_equityPeriod==='day') filteredTrades=trades.filter(t=>t.date===y+'-'+m+'-'+d);
+  // 成績ボタンと連動してフィルター
+  const filteredTrades = getFilteredByOffset();
+  const isDay = _statTab==='day';
 
   let pts;
-  if(_equityPeriod==='day'){
+  if(isDay){
     // 日モードは取引1件ずつプロット
     if(!filteredTrades.length) return;
     let cum=0;
@@ -1820,10 +1810,10 @@ function drawEquity(){
     const cum=p.v;
     const col=dayPnl>=0?'#2dcc8a':'#ff4444';
     const cumCol=cum>=0?'#2dcc8a':'#ff4444';
-    const label=_equityPeriod==='day'?(p.idx+'件目'):p.d.slice(5).replace('-','/');
+    const label=_statTab==='day'?(p.idx+'件目'):p.d.slice(5).replace('-','/');
     showChartTip(c,clientX,clientY,
       '<span style="color:#c8d4f0">'+label+'</span><br>'
-      +(_equityPeriod==='day'?'損益: ':'当日: ')+'<span style="color:'+col+'">'+(dayPnl>=0?'+':'')+dayPnl.toLocaleString()+'円</span><br>'
+      +(_statTab==='day'?'損益: ':'当日: ')+'<span style="color:'+col+'">'+(dayPnl>=0?'+':'')+dayPnl.toLocaleString()+'円</span><br>'
       +'累計: <span style="color:'+cumCol+'">'+(cum>=0?'+':'')+Math.round(cum).toLocaleString()+'円</span>'
     );
   };
@@ -2676,8 +2666,8 @@ function renderAdvice(){
     if(m.pf < all.pf - 0.3 || (pfStatus(m.pf) === 'red' && pfStatus(all.pf) !== 'red')){
       advice = '⚠️ 今月のPF（' + m.pf.toFixed(2) + '）が全体（' + all.pf.toFixed(2) + '）より悪化しています。利益の伸ばし方か損切りの徹底を見直しましょう。';
     }
-    // RR優先チェック
-    else if(m.rr < all.rr - 0.3 || (rrStatus(m.rr) === 'red' && rrStatus(all.rr) !== 'red')){
+    // RR優先チェック（負けトレードがある時のみ）
+    else if(m.losses.length > 0 && (m.rr < all.rr - 0.3 || (rrStatus(m.rr) === 'red' && rrStatus(all.rr) !== 'red'))){
       advice = '⚠️ 今月のRR（' + m.rr.toFixed(2) + '）が全体（' + all.rr.toFixed(2) + '）より悪化しています。利確を早めすぎていないか確認しましょう。';
     }
     // 勝率チェック
@@ -2692,14 +2682,15 @@ function renderAdvice(){
       advice = '🔴 PF（' + all.pf.toFixed(2) + '）が1.0未満です。まず損切りを徹底してPF1.0超えを目指しましょう。';
     } else if(pfStatus(all.pf) === 'gray'){
       advice = '🟡 PF（' + all.pf.toFixed(2) + '）がグレーゾーンです。PF1.5（緑）を目指して利益をもう少し伸ばしましょう。';
-    } else if(rrStatus(all.rr) === 'red'){
+    } else if(all.losses.length > 0 && rrStatus(all.rr) === 'red'){
       advice = '🔴 RR（' + all.rr.toFixed(2) + '）が1.0未満です。平均利益が平均損失を下回っています。利確を伸ばすか損切りを早めましょう。';
-    } else if(rrStatus(all.rr) === 'gray'){
+    } else if(all.losses.length > 0 && rrStatus(all.rr) === 'gray'){
       advice = '🟡 RR（' + all.rr.toFixed(2) + '）がグレーゾーンです。RR2.0（緑）を目指して利確をもう少し伸ばしましょう。';
     } else if(wrStatus(all.winRate) === 'red'){
       advice = '🔴 勝率（' + all.winRate.toFixed(1) + '%）が50%未満です。エントリー精度を上げましょう。';
     } else {
-      advice = '✅ PF（' + all.pf.toFixed(2) + '）・RR（' + all.rr.toFixed(2) + '）・勝率（' + all.winRate.toFixed(1) + '%）が全て緑です。このペースを維持しましょう！';
+      const rrTxt = all.losses.length > 0 ? '・RR（'+all.rr.toFixed(2)+'）' : '';
+      advice = '✅ PF（' + (all.pf>=99?'∞':all.pf.toFixed(2)) + '）'+rrTxt+'・勝率（' + all.winRate.toFixed(1) + '%）が全て緑です。このペースを維持しましょう！';
       isGood = true;
     }
   }

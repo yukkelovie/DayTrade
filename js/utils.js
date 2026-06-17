@@ -18,6 +18,21 @@ function nextBizDay(dateStr){
   return toDateStr(d);
 }
 
+function stepDateSel(prefix, n){
+  let cur=getDateSel(prefix);
+  if(!cur){
+    const today=new Date();
+    cur=toDateStr(today);
+  }
+  const next=addDays(cur, n);
+  setDateSel(prefix, next);
+  const wrap=document.getElementById(prefix+'-wrap');
+  if(wrap){
+    const selects=wrap.querySelectorAll('select');
+    selects.forEach(s=>{if(s.onchange) s.onchange();});
+  }
+}
+
 function initDateSel(prefix, fromYear=2024, toYear=2030){
   const yEl=document.getElementById(prefix+'-y');
   const mEl=document.getElementById(prefix+'-m');
@@ -29,6 +44,21 @@ function initDateSel(prefix, fromYear=2024, toYear=2030){
   for(let m=1;m<=12;m++) mEl.innerHTML+=`<option value="${String(m).padStart(2,'0')}">${m}</option>`;
   dEl.innerHTML='<option value="">日</option>';
   for(let d=1;d<=31;d++) dEl.innerHTML+=`<option value="${String(d).padStart(2,'0')}">${d}</option>`;
+  const wrap=document.getElementById(prefix+'-wrap');
+  if(wrap){
+    const prevBtn=document.createElement('button');
+    prevBtn.type='button';
+    prevBtn.className='date-step';
+    prevBtn.textContent='◀';
+    prevBtn.onclick=()=>stepDateSel(prefix,-1);
+    const nextBtn=document.createElement('button');
+    nextBtn.type='button';
+    nextBtn.className='date-step';
+    nextBtn.textContent='▶';
+    nextBtn.onclick=()=>stepDateSel(prefix,1);
+    wrap.insertBefore(prevBtn, wrap.firstChild);
+    wrap.appendChild(nextBtn);
+  }
 }
 function getDateSel(prefix){
   const y=document.getElementById(prefix+'-y').value;
